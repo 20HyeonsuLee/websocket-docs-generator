@@ -24,12 +24,19 @@
     <div id="app" class="container" style="display: none;">
         <!-- Header -->
         <header class="header">
-            <h1 id="api-title"></h1>
-            <div class="api-info">
-                <span id="api-version" class="version"></span>
-                <span id="asyncapi-version" class="asyncapi-version"></span>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 id="api-title"></h1>
+                    <div class="api-info">
+                        <span id="api-version" class="version"></span>
+                        <span id="asyncapi-version" class="asyncapi-version"></span>
+                    </div>
+                    <p id="api-description" class="description"></p>
+                </div>
+                <div>
+                    <button id="header-collapse-all-btn" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">📋 Collapse All</button>
+                </div>
             </div>
-            <p id="api-description" class="description"></p>
         </header>
 
         <!-- Navigation -->
@@ -58,16 +65,10 @@
         <main class="content">
             <!-- Operations Section -->
             <section class="section">
-                <h2>WebSocket API Operations</h2>
-                <div id="operations-container">
-                    <!-- 동적으로 생성됨 -->
+                <div class="section-header">
+                    <h2>WebSocket API Operations</h2>
                 </div>
-            </section>
-
-            <!-- DTO Schemas Section -->
-            <section id="schemas" class="section">
-                <h2>DTO Schemas</h2>
-                <div id="schemas-container">
+                <div id="operations-container">
                     <!-- 동적으로 생성됨 -->
                 </div>
             </section>
@@ -113,7 +114,7 @@
                             </div>
                             <div class="message-actions">
                                 <button id="send-message-btn" class="btn btn-primary" disabled>Send Message</button>
-                                <button id="clear-log-btn" class="btn btn-secondary">Clear Log</button>
+                                <button id="go-to-operation-btn" class="btn btn-info" disabled>Go to Operation</button>
                             </div>
                         </div>
                     </div>
@@ -137,6 +138,7 @@
                             <div class="subscription-actions">
                                 <button id="subscribe-btn" class="btn btn-primary" disabled>Subscribe</button>
                                 <button id="unsubscribe-all-btn" class="btn btn-secondary">Unsubscribe All</button>
+                                <button id="go-to-topic-btn" class="btn btn-info" disabled>Go to Topic</button>
                             </div>
                         </div>
                         <div class="active-subscriptions">
@@ -148,7 +150,10 @@
                     </div>
 
                     <div class="log-panel">
-                        <h3>Connection & Send Log</h3>
+                        <div class="log-header">
+                            <h3>Connection & Send Log</h3>
+                            <button id="clear-connection-log-btn" class="btn btn-secondary btn-sm">Clear</button>
+                        </div>
                         <div id="message-log" class="message-log">
                             <div class="log-entry info">
                                 <span class="timestamp">[--:--:--]</span>
@@ -158,7 +163,10 @@
                     </div>
 
                     <div class="subscription-log-panel">
-                        <h3>Subscription Messages</h3>
+                        <div class="log-header">
+                            <h3>Subscription Messages</h3>
+                            <button id="clear-subscription-log-btn" class="btn btn-secondary btn-sm">Clear</button>
+                        </div>
                         <div id="subscription-log" class="message-log">
                             <div class="log-entry info">
                                 <span class="timestamp">[--:--:--]</span>
@@ -166,6 +174,14 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- DTO Schemas Section -->
+            <section id="schemas" class="section">
+                <h2>DTO Schemas</h2>
+                <div id="schemas-container">
+                    <!-- 동적으로 생성됨 -->
                 </div>
             </section>
         </main>
@@ -414,8 +430,15 @@
                 </div>
                 <div class="operation-info collapsed">
                     <div class="operation-description">
-                        <p><strong>Summary:</strong> ${operationSpec.summary || '설명 없음'}</p>
-                        <p><strong>Description:</strong> ${operationSpec.description || '상세 설명 없음'}</p>
+                        <div class="operation-desc-content">
+                            <p><strong>Summary:</strong> ${operationSpec.summary || '설명 없음'}</p>
+                            <p><strong>Description:</strong> ${operationSpec.description || '상세 설명 없음'}</p>
+                        </div>
+                        <div class="operation-actions">
+                            <button class="btn btn-info btn-sm go-to-test-btn" data-operation-path="${operationPath}" data-action="${action.toLowerCase()}">
+                                🧪 Go to Test
+                            </button>
+                        </div>
                     </div>
                     ${requestPayloadHtml}
                     ${responsePayloadHtml}
@@ -905,6 +928,18 @@
             // 탭 초기화
             initializeTabs();
             
+            // Collapse All 버튼 이벤트
+            document.getElementById('header-collapse-all-btn').addEventListener('click', collapseAllOperations);
+            
+            // Go to Test 버튼들 이벤트 (이벤트 위임)
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('go-to-test-btn')) {
+                    const operationPath = e.target.getAttribute('data-operation-path');
+                    const action = e.target.getAttribute('data-action');
+                    goToTestFromOperation(operationPath, action);
+                }
+            });
+            
             // Smooth scrolling for navigation links
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
@@ -1001,11 +1036,18 @@
             document.getElementById('connect-btn').addEventListener('click', connectWebSocket);
             document.getElementById('disconnect-btn').addEventListener('click', disconnectWebSocket);
             document.getElementById('send-message-btn').addEventListener('click', sendMessage);
-            document.getElementById('clear-log-btn').addEventListener('click', clearLog);
             
             // 구독 관련 이벤트
             document.getElementById('subscribe-btn').addEventListener('click', manualSubscribe);
             document.getElementById('unsubscribe-all-btn').addEventListener('click', unsubscribeAll);
+            
+            // 로그 클리어 이벤트
+            document.getElementById('clear-connection-log-btn').addEventListener('click', clearConnectionLog);
+            document.getElementById('clear-subscription-log-btn').addEventListener('click', clearSubscriptionLog);
+            
+            // Operation 이동 이벤트
+            document.getElementById('go-to-operation-btn').addEventListener('click', goToOperation);
+            document.getElementById('go-to-topic-btn').addEventListener('click', goToTopic);
             
             // Destination 선택 시 예제 메시지 로드
             document.getElementById('message-destination').addEventListener('change', function(e) {
@@ -1013,6 +1055,7 @@
                 createDestinationVariableInputs(selectedPath);
                 loadExampleMessage(selectedPath);
                 updateFinalDestination();
+                updateGoToOperationButton();
             });
             
             // 구독 토픽 선택 시 변수 입력 필드 생성
@@ -1020,6 +1063,7 @@
                 const selectedTopic = e.target.value;
                 createSubscriptionVariableInputs(selectedTopic);
                 updateFinalSubscription();
+                updateGoToTopicButton();
             });
         }
 
@@ -1453,14 +1497,166 @@
             `;
         }
 
-        function clearLog() {
+        function clearConnectionLog() {
             const logContainer = document.getElementById('message-log');
             logContainer.innerHTML = `
                 <div class="log-entry info">
                     <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
-                    <span class="message">Log cleared</span>
+                    <span class="message">Connection log cleared</span>
                 </div>
             `;
+        }
+
+        function goToOperation() {
+            const selectedDestination = document.getElementById('message-destination').value;
+            if (!selectedDestination) return;
+            
+            // AsyncAPI 명세에서 해당 destination과 매칭되는 operation 찾기
+            if (apiSpec.operations) {
+                Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                    if (operationSpec.action === 'send' && getChannelPathFromRef(operationSpec.channel) === selectedDestination) {
+                        const operationId = 'operation-' + sanitizeId(operationPath);
+                        const operationElement = document.getElementById(operationId);
+                        if (operationElement) {
+                            // 해당 operation으로 스크롤
+                            operationElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            
+                            // operation이 접혀있으면 펼치기
+                            const operationInfo = operationElement.querySelector('.operation-info');
+                            const toggleIcon = operationElement.querySelector('.operation-toggle-icon');
+                            if (operationInfo && operationInfo.classList.contains('collapsed')) {
+                                operationInfo.classList.remove('collapsed');
+                                toggleIcon.textContent = '▼';
+                            }
+                            
+                            // 잠깐 하이라이트 효과
+                            operationElement.style.boxShadow = '0 0 20px rgba(52, 152, 219, 0.6)';
+                            setTimeout(() => {
+                                operationElement.style.boxShadow = '';
+                            }, 2000);
+                        }
+                    }
+                });
+            }
+        }
+
+        function goToTopic() {
+            const selectedTopic = document.getElementById('subscription-topic').value;
+            if (!selectedTopic) return;
+            
+            // AsyncAPI 명세에서 해당 topic과 매칭되는 operation 찾기
+            if (apiSpec.operations) {
+                Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                    let topicPath = '';
+                    
+                    if (operationSpec.action === 'receive' && getChannelPathFromRef(operationSpec.channel) === selectedTopic) {
+                        topicPath = operationPath;
+                    } else if (operationSpec.action === 'send' && operationSpec.reply && getChannelPathFromRef(operationSpec.reply.channel) === selectedTopic) {
+                        topicPath = operationPath;
+                    }
+                    
+                    if (topicPath) {
+                        const operationId = 'operation-' + sanitizeId(topicPath);
+                        const operationElement = document.getElementById(operationId);
+                        if (operationElement) {
+                            // 해당 operation으로 스크롤
+                            operationElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            
+                            // operation이 접혀있으면 펼치기
+                            const operationInfo = operationElement.querySelector('.operation-info');
+                            const toggleIcon = operationElement.querySelector('.operation-toggle-icon');
+                            if (operationInfo && operationInfo.classList.contains('collapsed')) {
+                                operationInfo.classList.remove('collapsed');
+                                toggleIcon.textContent = '▼';
+                            }
+                            
+                            // 잠깐 하이라이트 효과
+                            operationElement.style.boxShadow = '0 0 20px rgba(23, 162, 184, 0.6)';
+                            setTimeout(() => {
+                                operationElement.style.boxShadow = '';
+                            }, 2000);
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateGoToOperationButton() {
+            const goToOperationBtn = document.getElementById('go-to-operation-btn');
+            const selectedDestination = document.getElementById('message-destination').value;
+            goToOperationBtn.disabled = !selectedDestination;
+        }
+
+        function updateGoToTopicButton() {
+            const goToTopicBtn = document.getElementById('go-to-topic-btn');
+            const selectedTopic = document.getElementById('subscription-topic').value;
+            goToTopicBtn.disabled = !selectedTopic;
+        }
+
+        function collapseAllOperations() {
+            const allOperationInfos = document.querySelectorAll('.operation-info');
+            const allToggleIcons = document.querySelectorAll('.operation-toggle-icon');
+            
+            allOperationInfos.forEach(info => {
+                info.classList.add('collapsed');
+            });
+            
+            allToggleIcons.forEach(icon => {
+                icon.textContent = '▶';
+            });
+            
+            addLogEntry('info', 'All operations collapsed');
+        }
+
+        function goToTestFromOperation(operationPath, action) {
+            // WebSocket Test 섹션으로 스크롤
+            const testSection = document.getElementById('websocket-test');
+            testSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            if (action === 'send') {
+                // SEND operation인 경우 Send Message 패널에서 해당 destination 선택
+                if (apiSpec.operations && apiSpec.operations[operationPath]) {
+                    const operationSpec = apiSpec.operations[operationPath];
+                    const channelPath = getChannelPathFromRef(operationSpec.channel);
+                    
+                    const destinationSelect = document.getElementById('message-destination');
+                    destinationSelect.value = channelPath;
+                    
+                    // 변경 이벤트 트리거
+                    createDestinationVariableInputs(channelPath);
+                    loadExampleMessage(channelPath);
+                    updateFinalDestination();
+                    updateGoToOperationButton();
+                    
+                    // Send Message 패널 하이라이트
+                    const messagePanel = document.querySelector('.message-panel');
+                    messagePanel.style.boxShadow = '0 0 20px rgba(52, 152, 219, 0.6)';
+                    setTimeout(() => {
+                        messagePanel.style.boxShadow = '';
+                    }, 2000);
+                }
+            } else if (action === 'receive') {
+                // RECEIVE operation인 경우 Subscription 패널에서 해당 topic 선택
+                if (apiSpec.operations && apiSpec.operations[operationPath]) {
+                    const operationSpec = apiSpec.operations[operationPath];
+                    const topicPath = getChannelPathFromRef(operationSpec.channel);
+                    
+                    const topicSelect = document.getElementById('subscription-topic');
+                    topicSelect.value = topicPath;
+                    
+                    // 변경 이벤트 트리거
+                    createSubscriptionVariableInputs(topicPath);
+                    updateFinalSubscription();
+                    updateGoToTopicButton();
+                    
+                    // Subscription 패널 하이라이트
+                    const subscriptionPanel = document.querySelector('.subscription-panel');
+                    subscriptionPanel.style.boxShadow = '0 0 20px rgba(23, 162, 184, 0.6)';
+                    setTimeout(() => {
+                        subscriptionPanel.style.boxShadow = '';
+                    }, 2000);
+                }
+            }
         }
     </script>
 </body>
