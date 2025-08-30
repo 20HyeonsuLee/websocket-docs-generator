@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket API Documentation</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>API 문서를 불러오는 중...</p>
+    </div>
+    
+    <div id="error" class="error" style="display: none;">
+        <h2>오류 발생</h2>
+        <p id="error-message"></p>
+        <button onclick="location.reload()">다시 시도</button>
+    </div>
+
+    <div id="app" class="container" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <h1 id="api-title"></h1>
+            <div class="api-info">
+                <span id="api-version" class="version"></span>
+                <span id="asyncapi-version" class="asyncapi-version"></span>
+            </div>
+            <p id="api-description" class="description"></p>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="sidebar">
+            <div id="nav-operations" class="nav-section">
+                <h3>WebSocket Operations</h3>
+                <ul class="nav-list" id="operations-nav-list">
+                    <!-- 동적으로 생성됨 -->
+                </ul>
+            </div>
+            <div class="nav-section">
+                <h3>DTO Schemas</h3>
+                <ul class="nav-list">
+                    <li><a href="#schemas">All Schemas</a></li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <h3>WebSocket Test</h3>
+                <ul class="nav-list">
+                    <li><a href="#websocket-test">Connection Test</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="content">
+            <!-- Operations Section -->
+            <section class="section">
+                <h2>WebSocket API Operations</h2>
+                <div id="operations-container">
+                    <!-- 동적으로 생성됨 -->
+                </div>
+            </section>
+
+            <!-- DTO Schemas Section -->
+            <section id="schemas" class="section">
+                <h2>DTO Schemas</h2>
+                <div id="schemas-container">
+                    <!-- 동적으로 생성됨 -->
+                </div>
+            </section>
+
+            <!-- WebSocket Test Section -->
+            <section id="websocket-test" class="section">
+                <h2>WebSocket Connection Test</h2>
+                <div class="websocket-test-container">
+                    <div class="connection-panel">
+                        <h3>Connection Settings</h3>
+                        <div class="connection-form">
+                            <div class="form-group">
+                                <label for="ws-url">WebSocket URL:</label>
+                                <input type="text" id="ws-url" value="http://localhost:8080/ws/" placeholder="http://localhost:8080/ws/">
+                            </div>
+                            <div class="connection-actions">
+                                <button id="connect-btn" class="btn btn-primary">Connect</button>
+                                <button id="disconnect-btn" class="btn btn-secondary" disabled>Disconnect</button>
+                                <span id="connection-status" class="status-disconnected">Disconnected</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message-panel">
+                        <h3>Send Message</h3>
+                        <div class="message-form">
+                            <div class="form-group">
+                                <label for="message-destination">Destination:</label>
+                                <select id="message-destination">
+                                    <option value="">Select destination...</option>
+                                </select>
+                            </div>
+                            <div id="destination-variables" class="destination-variables">
+                                <!-- 동적으로 생성되는 변수 입력 필드들 -->
+                            </div>
+                            <div class="form-group">
+                                <label for="final-destination">Final Destination:</label>
+                                <input type="text" id="final-destination" readonly placeholder="Select destination first...">
+                            </div>
+                            <div class="form-group">
+                                <label for="message-payload">Message Payload (JSON):</label>
+                                <textarea id="message-payload" rows="6" placeholder='{"key": "value"}'></textarea>
+                            </div>
+                            <div class="message-actions">
+                                <button id="send-message-btn" class="btn btn-primary" disabled>Send Message</button>
+                                <button id="clear-log-btn" class="btn btn-secondary">Clear Log</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subscription-panel">
+                        <h3>Subscriptions</h3>
+                        <div class="subscription-form">
+                            <div class="form-group">
+                                <label for="subscription-topic">Topic to Subscribe:</label>
+                                <select id="subscription-topic">
+                                    <option value="">Select topic...</option>
+                                </select>
+                            </div>
+                            <div id="subscription-variables" class="destination-variables">
+                                <!-- 동적으로 생성되는 변수 입력 필드들 -->
+                            </div>
+                            <div class="form-group">
+                                <label for="final-subscription">Final Topic:</label>
+                                <input type="text" id="final-subscription" readonly placeholder="Select topic first...">
+                            </div>
+                            <div class="subscription-actions">
+                                <button id="subscribe-btn" class="btn btn-primary" disabled>Subscribe</button>
+                                <button id="unsubscribe-all-btn" class="btn btn-secondary">Unsubscribe All</button>
+                            </div>
+                        </div>
+                        <div class="active-subscriptions">
+                            <h4>Active Subscriptions:</h4>
+                            <div id="subscriptions-list" class="subscriptions-list">
+                                <div class="no-subscriptions">No active subscriptions</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="log-panel">
+                        <h3>Connection & Send Log</h3>
+                        <div id="message-log" class="message-log">
+                            <div class="log-entry info">
+                                <span class="timestamp">[--:--:--]</span>
+                                <span class="message">Ready to connect...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subscription-log-panel">
+                        <h3>Subscription Messages</h3>
+                        <div id="subscription-log" class="message-log">
+                            <div class="log-entry info">
+                                <span class="timestamp">[--:--:--]</span>
+                                <span class="message">No active subscriptions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let apiSpec = null;
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await loadApiSpec();
+                renderApiDocumentation();
+                hideLoading();
+                initializeNavigation();
+            } catch (error) {
+                showError('API 명세를 불러오는데 실패했습니다: ' + error.message);
+            }
+        });
+
+        // AsyncAPI 명세 로드
+        async function loadApiSpec() {
+            const response = await fetch('asyncapi.yml');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            const yamlContent = await response.text();
+            apiSpec = jsyaml.load(yamlContent);
+        }
+
+        // API 문서 렌더링
+        function renderApiDocumentation() {
+            renderHeader();
+            renderNavigation();
+            renderOperations();
+            renderSchemas();
+            initializeWebSocketTest();
+        }
+
+        // 헤더 렌더링
+        function renderHeader() {
+            document.getElementById('api-title').textContent = apiSpec.info.title || 'WebSocket API';
+            document.getElementById('api-version').textContent = `v${apiSpec.info.version}`;
+            document.getElementById('asyncapi-version').textContent = `AsyncAPI ${apiSpec.asyncapi}`;
+            document.getElementById('api-description').textContent = apiSpec.info.description || '';
+        }
+
+        // 네비게이션 렌더링
+        function renderNavigation() {
+            const operationsNav = document.getElementById('operations-nav-list');
+            operationsNav.innerHTML = '';
+
+            // Operations 네비게이션
+            if (apiSpec.operations) {
+                Object.keys(apiSpec.operations).forEach(operationPath => {
+                    const operationId = 'operation-' + sanitizeId(operationPath);
+                    const operationName = getOperationDisplayName(operationPath);
+                    
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="#${operationId}">${operationName}</a>`;
+                    operationsNav.appendChild(li);
+                });
+            }
+        }
+
+
+        // Operations 렌더링
+        function renderOperations() {
+            const container = document.getElementById('operations-container');
+            container.innerHTML = '';
+
+            if (!apiSpec.operations) return;
+
+            Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                const operationId = 'operation-' + sanitizeId(operationPath);
+                const operationCard = createOperationCard(operationId, operationPath, operationSpec);
+                container.appendChild(operationCard);
+            });
+        }
+
+
+
+        // Operation 카드 생성
+        function createOperationCard(operationId, operationPath, operationSpec) {
+            const div = document.createElement('div');
+            div.id = operationId;
+            div.className = 'operation-card';
+
+            const action = operationSpec.action || 'SEND';
+            
+            // Request Payload 정보 (send action인 경우)
+            let requestPayloadHtml = '';
+            if (action === 'send') {
+                requestPayloadHtml += '<div class="payload-section"><h4>📤 Request</h4>';
+                
+                // Destination 정보는 항상 표시
+                const destinationPath = getChannelPathFromRef(operationSpec.channel);
+                
+                if (operationSpec.messages && operationSpec.messages.length > 0) {
+                    // Request payload가 있는 경우
+                    operationSpec.messages.forEach(messageRef => {
+                        const messageName = getMessageNameFromRef(messageRef);
+                        const messageSchema = getMessageSchema(messageName);
+                        
+                        requestPayloadHtml += `
+                            <div class="payload-card">
+                                <div class="payload-header">
+                                    <strong>Destination:</strong> <code>${destinationPath}</code>
+                                    ${generateDestinationVariablesInfo(destinationPath)}
+                                </div>
+                                <div class="payload-content">
+                                    <h5>Payload Type: <code>${messageName}</code></h5>
+                                    <div class="schema-tabs">
+                                        <div class="tab-buttons">
+                                            <button class="tab-button active" data-tab="example">Example</button>
+                                            <button class="tab-button" data-tab="schema">Schema</button>
+                                        </div>
+                                        <div class="tab-content">
+                                            <div class="tab-panel active" data-panel="example">
+                                                <div class="schema-example">
+                                                    <pre><code>${messageSchema}</code></pre>
+                                                </div>
+                                            </div>
+                                            <div class="tab-panel" data-panel="schema">
+                                                <div class="schema-tree">
+                                                    ${generateSchemaTree(messageName)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    // Request payload가 없는 경우 (빈 메시지)
+                    requestPayloadHtml += `
+                        <div class="payload-card">
+                            <div class="payload-header">
+                                <strong>Destination:</strong> <code>${destinationPath}</code>
+                                ${generateDestinationVariablesInfo(destinationPath)}
+                            </div>
+                            <div class="payload-content">
+                                <p>이 요청은 빈 페이로드를 전송합니다.</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                requestPayloadHtml += '</div>';
+            }
+
+            // Response Payload 정보
+            let responsePayloadHtml = '';
+            
+            if (action === 'send' && operationSpec.reply) {
+                // SEND 액션: reply가 있는 경우 Response 표시
+                const replyChannelPath = getChannelPathFromRef(operationSpec.reply.channel);
+                responsePayloadHtml += '<div class="payload-section"><h4>📥 Response</h4>';
+                
+                if (operationSpec.reply.messages && operationSpec.reply.messages.length > 0) {
+                    operationSpec.reply.messages.forEach(messageRef => {
+                        const messageName = getMessageNameFromRef(messageRef);
+                        const messageSchema = getMessageSchema(messageName);
+                        
+                        responsePayloadHtml += `
+                            <div class="payload-card">
+                                <div class="payload-header">
+                                    <strong>Subscribe to:</strong> <code>${replyChannelPath}</code>
+                                    ${generateDestinationVariablesInfo(replyChannelPath)}
+                                </div>
+                                <div class="payload-content">
+                                    <h5>Payload Type: <code>${messageName}</code></h5>
+                                    <div class="schema-tabs">
+                                        <div class="tab-buttons">
+                                            <button class="tab-button active" data-tab="example">Example</button>
+                                            <button class="tab-button" data-tab="schema">Schema</button>
+                                        </div>
+                                        <div class="tab-content">
+                                            <div class="tab-panel active" data-panel="example">
+                                                <div class="schema-example">
+                                                    <pre><code>${messageSchema}</code></pre>
+                                                </div>
+                                            </div>
+                                            <div class="tab-panel" data-panel="schema">
+                                                <div class="schema-tree">
+                                                    ${generateSchemaTree(messageName)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                responsePayloadHtml += '</div>';
+            } else if (action === 'receive' && operationSpec.messages && operationSpec.messages.length > 0) {
+                // RECEIVE 액션: messages를 Response로 표시
+                const channelPath = getChannelPathFromRef(operationSpec.channel);
+                responsePayloadHtml += '<div class="payload-section"><h4>📥 Received Message</h4>';
+                
+                operationSpec.messages.forEach(messageRef => {
+                    const messageName = getMessageNameFromRef(messageRef);
+                    const messageSchema = getMessageSchema(messageName);
+                    
+                    responsePayloadHtml += `
+                        <div class="payload-card">
+                            <div class="payload-header">
+                                <strong>Subscribe to:</strong> <code>${channelPath}</code>
+                                ${generateDestinationVariablesInfo(channelPath)}
+                            </div>
+                            <div class="payload-content">
+                                <h5>Payload Type: <code>${messageName}</code></h5>
+                                <div class="schema-tabs">
+                                    <div class="tab-buttons">
+                                        <button class="tab-button active" data-tab="example">Example</button>
+                                        <button class="tab-button" data-tab="schema">Schema</button>
+                                    </div>
+                                    <div class="tab-content">
+                                        <div class="tab-panel active" data-panel="example">
+                                            <div class="schema-example">
+                                                <pre><code>${messageSchema}</code></pre>
+                                            </div>
+                                        </div>
+                                        <div class="tab-panel" data-panel="schema">
+                                            <div class="schema-tree">
+                                                ${generateSchemaTree(messageName)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                responsePayloadHtml += '</div>';
+            }
+
+            div.innerHTML = `
+                <div class="operation-header collapsible-header ${action.toLowerCase()}-header" onclick="toggleOperation('${operationId}')">
+                    <div class="operation-header-content">
+                        <span class="operation-badge ${action.toLowerCase()}">${action.toUpperCase()}</span>
+                        <h3>${operationPath}</h3>
+                    </div>
+                    <span class="operation-toggle-icon">▶</span>
+                </div>
+                <div class="operation-info collapsed">
+                    <div class="operation-description">
+                        <p><strong>Summary:</strong> ${operationSpec.summary || '설명 없음'}</p>
+                        <p><strong>Description:</strong> ${operationSpec.description || '상세 설명 없음'}</p>
+                    </div>
+                    ${requestPayloadHtml}
+                    ${responsePayloadHtml}
+                </div>
+            `;
+
+            return div;
+        }
+
+        // Schemas 렌더링
+        function renderSchemas() {
+            const container = document.getElementById('schemas-container');
+            container.innerHTML = '';
+
+            if (!apiSpec.components || !apiSpec.components.schemas) return;
+
+            Object.entries(apiSpec.components.schemas).forEach(([schemaName, schemaSpec]) => {
+                const schemaCard = createSchemaCard(schemaName, schemaSpec);
+                container.appendChild(schemaCard);
+            });
+        }
+
+        // Schema 카드 생성
+        function createSchemaCard(schemaName, schemaSpec) {
+            const div = document.createElement('div');
+            div.id = `schema-${sanitizeId(schemaName)}`;
+            div.className = 'schema-card';
+
+            // 스키마 예제 생성
+            const schemaExample = generateSchemaExample(schemaSpec);
+            const schemaTree = generateSchemaTreeForSchema(schemaSpec, schemaName);
+
+            div.innerHTML = `
+                <div class="schema-header collapsible-header" onclick="toggleSchemaCard('schema-${sanitizeId(schemaName)}')">
+                    <div class="schema-header-content">
+                        <h3>${schemaName}</h3>
+                        <span class="schema-type-badge object-type">DTO</span>
+                    </div>
+                    <span class="schema-toggle-icon">▶</span>
+                </div>
+                <div class="schema-content collapsed">
+                    <div class="schema-tabs">
+                        <div class="tab-buttons">
+                            <button class="tab-button active" data-tab="example">Example</button>
+                            <button class="tab-button" data-tab="schema">Schema</button>
+                        </div>
+                        <div class="tab-content">
+                            <div class="tab-panel active" data-panel="example">
+                                <div class="schema-example">
+                                    <pre><code>${schemaExample}</code></pre>
+                                </div>
+                            </div>
+                            <div class="tab-panel" data-panel="schema">
+                                <div class="schema-tree">
+                                    ${schemaTree}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return div;
+        }
+
+        // 스키마용 트리 생성
+        function generateSchemaTreeForSchema(schema, schemaName) {
+            if (!schema.properties) return '<p>스키마 정보 없음</p>';
+            return generateSchemaTreeNode(schema, schemaName, 0);
+        }
+
+        // 메시지 스키마 가져오기
+        function getMessageSchema(messageName) {
+            if (!apiSpec.components || !apiSpec.components.messages) return '스키마 정보 없음';
+            
+            const messageSpec = apiSpec.components.messages[messageName];
+            if (!messageSpec || !messageSpec.payload || !messageSpec.payload.$ref) return '스키마 정보 없음';
+            
+            const schemaName = messageSpec.payload.$ref.split('/').pop();
+            const schema = apiSpec.components.schemas[schemaName];
+            
+            if (!schema) return '스키마 정보 없음';
+            
+            return generateSchemaExample(schema);
+        }
+
+        // 스키마 트리 생성
+        function generateSchemaTree(messageName) {
+            if (!apiSpec.components || !apiSpec.components.messages) return '<p>스키마 정보 없음</p>';
+            
+            const messageSpec = apiSpec.components.messages[messageName];
+            if (!messageSpec || !messageSpec.payload || !messageSpec.payload.$ref) return '<p>스키마 정보 없음</p>';
+            
+            const schemaName = messageSpec.payload.$ref.split('/').pop();
+            const schema = apiSpec.components.schemas[schemaName];
+            
+            if (!schema) return '<p>스키마 정보 없음</p>';
+            
+            return generateSchemaTreeNode(schema, schemaName, 0);
+        }
+
+        // 스키마 트리 노드 생성
+        function generateSchemaTreeNode(schema, nodeName, depth) {
+            if (!schema.properties) return '';
+            
+            const indent = '  '.repeat(depth);
+            let html = `<div class="schema-node" data-depth="${depth}">`;
+            
+            if (depth === 0) {
+                html += `<div class="schema-node-header root-node">
+                    <span class="schema-node-type object-type">${nodeName}</span>
+                    <span class="schema-type-badge">object</span>
+                </div>`;
+            }
+            
+            html += '<div class="schema-node-children">';
+            
+            Object.entries(schema.properties).forEach(([propName, propSpec]) => {
+                const isRequired = schema.required && schema.required.includes(propName);
+                const fieldId = `field-${nodeName}-${propName}-${depth}`;
+                
+                html += `<div class="schema-field" data-field-id="${fieldId}">`;
+                
+                if (propSpec.type === 'object' && propSpec.properties) {
+                    // 중첩 객체
+                    html += `<div class="schema-node-header collapsible" data-field-id="${fieldId}">
+                        <span class="toggle-icon">▶</span>
+                        <span class="schema-field-name">${propName}</span>
+                        ${isRequired ? '<span class="required-badge">required</span>' : '<span class="optional-badge">optional</span>'}
+                        <span class="schema-type-badge object-type">object</span>
+                    </div>
+                    <div class="schema-node-children collapsed" id="${fieldId}-children">
+                        ${generateSchemaTreeNode(propSpec, `${nodeName}_${propName}`, depth + 1)}
+                    </div>`;
+                } else if (propSpec.type === 'array') {
+                    // 배열
+                    html += `<div class="schema-node-header">
+                        <span class="schema-field-name">${propName}</span>
+                        ${isRequired ? '<span class="required-badge">required</span>' : '<span class="optional-badge">optional</span>'}
+                        <span class="schema-type-badge array-type">array</span>
+                    </div>`;
+                    
+                    if (propSpec.items && propSpec.items.type === 'object' && propSpec.items.properties) {
+                        html += `<div class="schema-array-items">
+                            <div class="schema-node-header collapsible" data-field-id="${fieldId}-items">
+                                <span class="toggle-icon">▶</span>
+                                <span class="schema-field-name">items</span>
+                                <span class="schema-type-badge object-type">object</span>
+                            </div>
+                            <div class="schema-node-children collapsed" id="${fieldId}-items-children">
+                                ${generateSchemaTreeNode(propSpec.items, `${nodeName}_${propName}_item`, depth + 1)}
+                            </div>
+                        </div>`;
+                    } else if (propSpec.items) {
+                        html += `<div class="schema-array-items">
+                            <div class="schema-field-info">
+                                <span class="schema-field-name">items</span>
+                                <span class="schema-type-badge">${propSpec.items.type || 'unknown'}</span>
+                                ${propSpec.items.enum ? `<span class="enum-values">${propSpec.items.enum.join(' | ')}</span>` : ''}
+                            </div>
+                        </div>`;
+                    }
+                } else {
+                    // 기본 타입
+                    const typeClass = getTypeClass(propSpec.type);
+                    html += `<div class="schema-node-header">
+                        <span class="schema-field-name">${propName}</span>
+                        ${isRequired ? '<span class="required-badge">required</span>' : '<span class="optional-badge">optional</span>'}
+                        <span class="schema-type-badge ${typeClass}">${propSpec.type || 'unknown'}</span>
+                        ${propSpec.enum ? generateEnumBadges(propSpec.enum) : ''}
+                    </div>`;
+                }
+                
+                html += '</div>';
+            });
+            
+            html += '</div></div>';
+            return html;
+        }
+
+        // 스키마 예제 생성
+        function generateSchemaExample(schema) {
+            if (!schema.properties) return '{}';
+            
+            const example = generateExampleObject(schema);
+            let jsonString = JSON.stringify(example, null, 2);
+            
+            // enum 값들에 대한 주석 추가
+            jsonString = addEnumComments(jsonString, schema);
+            return jsonString;
+        }
+
+        // enum 주석 추가
+        function addEnumComments(jsonString, schema) {
+            if (!schema.properties) return jsonString;
+            
+            Object.entries(schema.properties).forEach(([propName, propSpec]) => {
+                if (propSpec.type === 'string' && propSpec.enum && propSpec.enum.length > 1) {
+                    // enum 값이 있는 문자열 필드에 주석 추가
+                    const currentValue = propSpec.enum[0];
+                    const enumComment = ` // ${propSpec.enum.join(' | ')}`;
+                    const regex = new RegExp(`"${propName}":\\s*"${currentValue}"`, 'g');
+                    jsonString = jsonString.replace(regex, `"${propName}": "${currentValue}"${enumComment}`);
+                } else if (propSpec.type === 'object' && propSpec.properties) {
+                    // 중첩된 객체에 대해서도 재귀적으로 처리
+                    jsonString = addEnumComments(jsonString, propSpec);
+                }
+            });
+            
+            return jsonString;
+        }
+
+        // 예제 객체 생성 (재귀적으로 중첩 객체 처리)
+        function generateExampleObject(schema) {
+            if (!schema.properties) return {};
+            
+            const example = {};
+            Object.entries(schema.properties).forEach(([propName, propSpec]) => {
+                if (propSpec.type === 'string') {
+                    if (propSpec.enum) {
+                        example[propName] = propSpec.enum[0];
+                    } else if (propSpec.const) {
+                        example[propName] = propSpec.const;
+                    } else {
+                        example[propName] = `예시 ${propName}`;
+                    }
+                } else if (propSpec.type === 'integer') {
+                    example[propName] = 1;
+                } else if (propSpec.type === 'number') {
+                    example[propName] = 1.0;
+                } else if (propSpec.type === 'boolean') {
+                    example[propName] = true;
+                } else if (propSpec.type === 'array') {
+                    if (propSpec.items) {
+                        if (propSpec.items.type === 'object' && propSpec.items.properties) {
+                            // 배열 안의 객체
+                            example[propName] = [generateExampleObject(propSpec.items)];
+                        } else if (propSpec.items.type === 'string') {
+                            if (propSpec.items.enum) {
+                                example[propName] = [propSpec.items.enum[0]];
+                            } else if (propSpec.items.const) {
+                                example[propName] = [propSpec.items.const];
+                            } else {
+                                example[propName] = [`예시 ${propName} item`];
+                            }
+                        } else {
+                            example[propName] = [getDefaultValueForType(propSpec.items.type)];
+                        }
+                    } else {
+                        example[propName] = [];
+                    }
+                } else if (propSpec.type === 'object' && propSpec.properties) {
+                    // 중첩된 객체를 재귀적으로 생성
+                    example[propName] = generateExampleObject(propSpec);
+                } else {
+                    example[propName] = getDefaultValueForType(propSpec.type);
+                }
+            });
+
+            return example;
+        }
+
+        // 타입별 기본값 반환
+        function getDefaultValueForType(type) {
+            switch (type) {
+                case 'string': return '예시 문자열';
+                case 'integer': return 1;
+                case 'number': return 1.0;
+                case 'boolean': return true;
+                case 'array': return [];
+                case 'object': return {};
+                default: return null;
+            }
+        }
+
+        // 타입별 CSS 클래스 반환
+        function getTypeClass(type) {
+            switch (type) {
+                case 'string': return 'string-type';
+                case 'integer': return 'integer-type';
+                case 'number': return 'number-type';
+                case 'boolean': return 'boolean-type';
+                case 'array': return 'array-type';
+                case 'object': return 'object-type';
+                default: return '';
+            }
+        }
+
+        // ENUM 값들을 개별 배지로 생성
+        function generateEnumBadges(enumValues) {
+            return enumValues.map(value => 
+                `<span class="enum-badge">${value}</span>`
+            ).join('');
+        }
+
+        // Destination Variables 정보 생성
+        function generateDestinationVariablesInfo(destinationPath) {
+            if (!destinationPath) return '';
+            
+            // {변수명} 패턴을 찾기
+            const variables = destinationPath.match(/{([^}]+)}/g);
+            
+            if (!variables || variables.length === 0) return '';
+            
+            let variablesInfo = '<div class="destination-variables-info">';
+            variablesInfo += '<div class="variables-label">Path Variables:</div>';
+            variablesInfo += '<div class="variables-list">';
+            
+            variables.forEach(variable => {
+                const varName = variable.slice(1, -1); // {} 제거
+                const varDescription = getVariableDescription(varName);
+                
+                variablesInfo += `
+                    <div class="variable-item">
+                        <span class="variable-name">${varName}</span>
+                        <span class="variable-desc">${varDescription}</span>
+                    </div>
+                `;
+            });
+            
+            variablesInfo += '</div></div>';
+            return variablesInfo;
+        }
+
+        // 변수별 설명 생성
+        function getVariableDescription(varName) {
+            const descriptions = {
+                'joinCode': 'Room join code (방 참가 코드)',
+                'roomId': 'Room identifier (방 식별자)',
+                'userId': 'User identifier (사용자 식별자)',
+                'playerId': 'Player identifier (플레이어 식별자)',
+                'gameId': 'Game identifier (게임 식별자)',
+                'sessionId': 'Session identifier (세션 식별자)',
+                'id': 'Resource identifier (리소스 식별자)',
+                'code': 'Access code (접근 코드)',
+                'token': 'Authentication token (인증 토큰)'
+            };
+            
+            return descriptions[varName] || `${varName} parameter (${varName} 매개변수)`;
+        }
+
+        // 유틸리티 함수들
+        function sanitizeId(path) {
+            return path.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        }
+
+        function getChannelDisplayName(channelPath) {
+            return channelPath.split('/').pop().replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function getOperationDisplayName(operationPath) {
+            return operationPath.split('/').pop().replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function getMessageNameFromRef(messageRef) {
+            if (typeof messageRef === 'string') return messageRef;
+            if (messageRef.$ref) return messageRef.$ref.split('/').pop();
+            return 'Unknown';
+        }
+
+        function getChannelPathFromRef(channelRef) {
+            if (typeof channelRef === 'string') return channelRef;
+            if (channelRef.$ref) {
+                // #/channels/~1topic~1topic~1room~1{joinCode} 형태에서 채널 경로 추출
+                const refPath = channelRef.$ref.replace('#/channels/', '').replace(/~1/g, '/');
+                return refPath;
+            }
+            return 'Unknown';
+        }
+
+        // UI 상태 관리
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+
+        // Operation 카드 토글
+        function toggleOperation(operationId) {
+            const content = document.querySelector(`#${operationId} .operation-info`);
+            const toggleIcon = document.querySelector(`#${operationId} .operation-toggle-icon`);
+            
+            if (content && toggleIcon) {
+                if (content.classList.contains('collapsed')) {
+                    content.classList.remove('collapsed');
+                    toggleIcon.textContent = '▼';
+                } else {
+                    content.classList.add('collapsed');
+                    toggleIcon.textContent = '▶';
+                }
+            }
+        }
+
+        // Schema 카드 토글
+        function toggleSchemaCard(schemaId) {
+            const content = document.querySelector(`#${schemaId} .schema-content`);
+            const toggleIcon = document.querySelector(`#${schemaId} .schema-toggle-icon`);
+            
+            if (content && toggleIcon) {
+                if (content.classList.contains('collapsed')) {
+                    content.classList.remove('collapsed');
+                    toggleIcon.textContent = '▼';
+                } else {
+                    content.classList.add('collapsed');
+                    toggleIcon.textContent = '▶';
+                }
+            }
+        }
+
+        // 탭 전환 및 스키마 노드 토글 (이벤트 위임 사용)
+        function initializeTabs() {
+            document.addEventListener('click', function(e) {
+                // 탭 버튼 클릭 처리
+                if (e.target.classList.contains('tab-button')) {
+                    const tab = e.target.dataset.tab;
+                    const tabContainer = e.target.closest('.schema-tabs');
+                    
+                    // 탭 버튼 활성화
+                    tabContainer.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // 탭 패널 표시
+                    tabContainer.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+                    tabContainer.querySelector(`[data-panel="${tab}"]`).classList.add('active');
+                }
+                
+                // 스키마 노드 토글 클릭 처리 (이벤트 위임)
+                if (e.target.closest('.collapsible')) {
+                    const header = e.target.closest('.collapsible');
+                    const fieldId = header.getAttribute('data-field-id');
+                    if (fieldId) {
+                        toggleSchemaNodeByElement(header);
+                    }
+                }
+            });
+        }
+
+        // 요소 기반 스키마 노드 토글
+        function toggleSchemaNodeByElement(headerElement) {
+            const fieldId = headerElement.getAttribute('data-field-id');
+            const toggleIcon = headerElement.querySelector('.toggle-icon');
+            
+            // 클릭한 헤더 바로 다음에 있는 children 찾기
+            let targetChildren = null;
+            
+            // 헤더의 다음 형제 요소에서 schema-node-children 찾기
+            let nextElement = headerElement.nextElementSibling;
+            while (nextElement) {
+                if (nextElement.classList.contains('schema-node-children')) {
+                    targetChildren = nextElement;
+                    break;
+                }
+                nextElement = nextElement.nextElementSibling;
+            }
+            
+            // 못 찾았으면 ID로 다시 시도
+            if (!targetChildren) {
+                targetChildren = document.getElementById(`${fieldId}-items-children`) || 
+                                document.getElementById(`${fieldId}-children`);
+            }
+            
+            console.log('Field ID:', fieldId, 'Target children:', targetChildren); // 디버깅용
+            
+            if (targetChildren && toggleIcon) {
+                if (targetChildren.classList.contains('collapsed')) {
+                    targetChildren.classList.remove('collapsed');
+                    toggleIcon.textContent = '▼';
+                    console.log('Expanded'); // 디버깅용
+                } else {
+                    targetChildren.classList.add('collapsed');
+                    toggleIcon.textContent = '▶';
+                    console.log('Collapsed'); // 디버깅용
+                }
+            } else {
+                console.log('Target children or toggle icon not found'); // 디버깅용
+            }
+        }
+
+        // 네비게이션 초기화
+        function initializeNavigation() {
+            // 탭 초기화
+            initializeTabs();
+            
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+
+            // Highlight current section in navigation
+            window.addEventListener('scroll', () => {
+                let current = '';
+                document.querySelectorAll('section[id], [id^="channel-"], [id^="operation-"]').forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (window.pageYOffset >= sectionTop - 60) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                document.querySelectorAll('.nav-list a').forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        }
+
+        // WebSocket Test 기능
+        let stompClient = null;
+        let subscriptions = [];
+
+        function initializeWebSocketTest() {
+            populateDestinations();
+            populateSubscriptionTopics();
+            initializeWebSocketEvents();
+        }
+
+        function populateDestinations() {
+            const destinationSelect = document.getElementById('message-destination');
+            destinationSelect.innerHTML = '<option value="">Select destination...</option>';
+            
+            if (apiSpec.operations) {
+                Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                    if (operationSpec.action === 'send') {
+                        const channelPath = getChannelPathFromRef(operationSpec.channel);
+                        const option = document.createElement('option');
+                        option.value = channelPath;
+                        // 중복되거나 유사한 경우 channelPath만 표시, 다른 경우 operationPath 표시
+                        if (operationPath === channelPath || channelPath.includes(operationPath)) {
+                            option.textContent = channelPath;
+                        } else {
+                            option.textContent = `${operationPath} (${channelPath})`;
+                        }
+                        destinationSelect.appendChild(option);
+                    }
+                });
+            }
+        }
+
+        function populateSubscriptionTopics() {
+            const topicSelect = document.getElementById('subscription-topic');
+            topicSelect.innerHTML = '<option value="">Select topic...</option>';
+            
+            const topics = new Set(); // 중복 제거
+            
+            if (apiSpec.operations) {
+                Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                    // RECEIVE 오퍼레이션의 채널
+                    if (operationSpec.action === 'receive') {
+                        const topicPath = getChannelPathFromRef(operationSpec.channel);
+                        topics.add(topicPath);
+                    }
+                    
+                    // SEND 오퍼레이션의 reply 채널
+                    if (operationSpec.action === 'send' && operationSpec.reply) {
+                        const replyPath = getChannelPathFromRef(operationSpec.reply.channel);
+                        topics.add(replyPath);
+                    }
+                });
+            }
+            
+            topics.forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic;
+                option.textContent = topic;
+                topicSelect.appendChild(option);
+            });
+        }
+
+        function initializeWebSocketEvents() {
+            document.getElementById('connect-btn').addEventListener('click', connectWebSocket);
+            document.getElementById('disconnect-btn').addEventListener('click', disconnectWebSocket);
+            document.getElementById('send-message-btn').addEventListener('click', sendMessage);
+            document.getElementById('clear-log-btn').addEventListener('click', clearLog);
+            
+            // 구독 관련 이벤트
+            document.getElementById('subscribe-btn').addEventListener('click', manualSubscribe);
+            document.getElementById('unsubscribe-all-btn').addEventListener('click', unsubscribeAll);
+            
+            // Destination 선택 시 예제 메시지 로드
+            document.getElementById('message-destination').addEventListener('change', function(e) {
+                const selectedPath = e.target.value;
+                createDestinationVariableInputs(selectedPath);
+                loadExampleMessage(selectedPath);
+                updateFinalDestination();
+            });
+            
+            // 구독 토픽 선택 시 변수 입력 필드 생성
+            document.getElementById('subscription-topic').addEventListener('change', function(e) {
+                const selectedTopic = e.target.value;
+                createSubscriptionVariableInputs(selectedTopic);
+                updateFinalSubscription();
+            });
+        }
+
+        function connectWebSocket() {
+            const url = document.getElementById('ws-url').value.trim();
+            if (!url) {
+                addLogEntry('error', 'Please enter a WebSocket URL');
+                return;
+            }
+
+            try {
+                addLogEntry('info', `Connecting to ${url}...`);
+                
+                // SockJS와 STOMP 연결
+                const socket = new SockJS(url);
+                stompClient = StompJs.Stomp.over(socket);
+                
+                // STOMP 연결
+                stompClient.connect({}, function(frame) {
+                    addLogEntry('success', `STOMP connected to ${url}`);
+                    addLogEntry('info', `Session: ${frame.headers['session']}`);
+                    updateConnectionStatus(true);
+                    
+                }, function(error) {
+                    addLogEntry('error', `STOMP connection failed: ${error}`);
+                    updateConnectionStatus(false);
+                });
+
+                // WebSocket 연결 상태 모니터링
+                socket.onopen = function() {
+                    addLogEntry('info', 'SockJS connection opened');
+                };
+
+                socket.onclose = function(event) {
+                    addLogEntry('info', `SockJS connection closed (code: ${event.code})`);
+                    updateConnectionStatus(false);
+                    clearSubscriptions();
+                };
+
+                socket.onerror = function(error) {
+                    addLogEntry('error', `SockJS error: ${error}`);
+                };
+                
+            } catch (error) {
+                addLogEntry('error', `Connection failed: ${error.message}`);
+                updateConnectionStatus(false);
+            }
+        }
+
+        function disconnectWebSocket() {
+            if (stompClient && stompClient.connected) {
+                // 모든 구독 해제
+                clearSubscriptions();
+                
+                // STOMP 연결 해제
+                stompClient.disconnect(function() {
+                    addLogEntry('info', 'STOMP disconnected');
+                    updateConnectionStatus(false);
+                });
+            } else {
+                updateConnectionStatus(false);
+                addLogEntry('info', 'Already disconnected');
+            }
+        }
+
+        function createSubscriptionVariableInputs(topicPath) {
+            const variablesContainer = document.getElementById('subscription-variables');
+            variablesContainer.innerHTML = '';
+
+            if (!topicPath) return;
+
+            // {변수명} 패턴을 찾아서 입력 필드 생성
+            const variables = topicPath.match(/{([^}]+)}/g);
+            
+            if (variables && variables.length > 0) {
+                variables.forEach(variable => {
+                    const varName = variable.slice(1, -1); // {} 제거
+                    
+                    const formGroup = document.createElement('div');
+                    formGroup.className = 'form-group';
+                    
+                    formGroup.innerHTML = `
+                        <label for="sub-var-${varName}">${varName}:</label>
+                        <input type="text" id="sub-var-${varName}" data-variable="${varName}" 
+                               placeholder="Enter ${varName}..." class="subscription-variable">
+                    `;
+                    
+                    variablesContainer.appendChild(formGroup);
+                });
+
+                // 변수 입력 시 최종 subscription 업데이트
+                variablesContainer.addEventListener('input', updateFinalSubscription);
+            }
+        }
+
+        function updateFinalSubscription() {
+            const baseTopic = document.getElementById('subscription-topic').value;
+            const finalSubscriptionInput = document.getElementById('final-subscription');
+            const subscribeBtn = document.getElementById('subscribe-btn');
+            
+            if (!baseTopic) {
+                finalSubscriptionInput.value = '';
+                subscribeBtn.disabled = true;
+                return;
+            }
+
+            let finalTopic = baseTopic;
+            
+            // 모든 변수 입력 필드의 값으로 치환
+            const variableInputs = document.querySelectorAll('.subscription-variable');
+            variableInputs.forEach(input => {
+                const varName = input.dataset.variable;
+                const varValue = input.value.trim();
+                if (varValue) {
+                    finalTopic = finalTopic.replace(`{${varName}}`, varValue);
+                }
+            });
+            
+            finalSubscriptionInput.value = finalTopic;
+            
+            // 변수가 모두 채워졌는지 확인
+            const hasUnfilledVariables = finalTopic.includes('{') && finalTopic.includes('}');
+            subscribeBtn.disabled = !stompClient || !stompClient.connected || hasUnfilledVariables;
+        }
+
+        function manualSubscribe() {
+            if (!stompClient || !stompClient.connected) {
+                addLogEntry('error', 'Not connected to STOMP server');
+                return;
+            }
+
+            const finalTopic = document.getElementById('final-subscription').value;
+            
+            if (!finalTopic) {
+                addLogEntry('error', 'Please select a topic');
+                return;
+            }
+
+            // 변수가 아직 치환되지 않았는지 확인
+            if (finalTopic.includes('{') && finalTopic.includes('}')) {
+                addLogEntry('error', 'Please fill in all topic variables');
+                return;
+            }
+
+            // 이미 구독 중인지 확인
+            const existingSubscription = subscriptions.find(sub => sub.destination === finalTopic);
+            if (existingSubscription) {
+                addLogEntry('error', `Already subscribed to ${finalTopic}`);
+                return;
+            }
+
+            subscribeToTopic(finalTopic);
+            updateSubscriptionsList();
+        }
+
+        function unsubscribeAll() {
+            clearSubscriptions();
+            updateSubscriptionsList();
+            addLogEntry('info', 'All subscriptions cleared');
+            
+            // 구독 로그도 초기화
+            const subscriptionLogContainer = document.getElementById('subscription-log');
+            subscriptionLogContainer.innerHTML = `
+                <div class="log-entry info">
+                    <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="message">No active subscriptions</span>
+                </div>
+            `;
+        }
+
+        function subscribeToTopic(topicPath) {
+            if (!stompClient || !stompClient.connected) return;
+            
+            // 이미 구독 중인지 확인
+            const existingSubscription = subscriptions.find(sub => sub.destination === topicPath);
+            if (existingSubscription) return;
+            
+            try {
+                const subscription = stompClient.subscribe(topicPath, function(message) {
+                    addSubscriptionLogEntry('received', topicPath, message.body);
+                });
+                
+                subscriptions.push({
+                    destination: topicPath,
+                    subscription: subscription
+                });
+                
+                addLogEntry('info', `Subscribed to ${topicPath}`);
+                
+                // 첫 번째 구독 시 subscription log 초기화
+                if (subscriptions.length === 1) {
+                    clearSubscriptionLog();
+                }
+            } catch (error) {
+                addLogEntry('error', `Failed to subscribe to ${topicPath}: ${error.message}`);
+            }
+        }
+
+        function updateSubscriptionsList() {
+            const subscriptionsList = document.getElementById('subscriptions-list');
+            
+            if (subscriptions.length === 0) {
+                subscriptionsList.innerHTML = '<div class="no-subscriptions">No active subscriptions</div>';
+                return;
+            }
+            
+            subscriptionsList.innerHTML = '';
+            subscriptions.forEach(sub => {
+                const subscriptionItem = document.createElement('div');
+                subscriptionItem.className = 'subscription-item';
+                
+                subscriptionItem.innerHTML = `
+                    <span class="subscription-topic">${sub.destination}</span>
+                    <button class="unsubscribe-btn" onclick="unsubscribeFromTopic('${sub.destination}')">×</button>
+                `;
+                
+                subscriptionsList.appendChild(subscriptionItem);
+            });
+        }
+
+        function unsubscribeFromTopic(topicPath) {
+            const subscriptionIndex = subscriptions.findIndex(sub => sub.destination === topicPath);
+            if (subscriptionIndex === -1) return;
+            
+            try {
+                subscriptions[subscriptionIndex].subscription.unsubscribe();
+                subscriptions.splice(subscriptionIndex, 1);
+                updateSubscriptionsList();
+                addLogEntry('info', `Unsubscribed from ${topicPath}`);
+            } catch (error) {
+                addLogEntry('error', `Failed to unsubscribe from ${topicPath}: ${error.message}`);
+            }
+        }
+
+        function clearSubscriptions() {
+            subscriptions.forEach(sub => {
+                try {
+                    sub.subscription.unsubscribe();
+                } catch (error) {
+                    console.error('Error unsubscribing:', error);
+                }
+            });
+            subscriptions = [];
+        }
+
+        function createDestinationVariableInputs(destinationPath) {
+            const variablesContainer = document.getElementById('destination-variables');
+            variablesContainer.innerHTML = '';
+
+            if (!destinationPath) return;
+
+            // {변수명} 패턴을 찾아서 입력 필드 생성
+            const variables = destinationPath.match(/{([^}]+)}/g);
+            
+            if (variables && variables.length > 0) {
+                variables.forEach(variable => {
+                    const varName = variable.slice(1, -1); // {} 제거
+                    
+                    const formGroup = document.createElement('div');
+                    formGroup.className = 'form-group';
+                    
+                    formGroup.innerHTML = `
+                        <label for="var-${varName}">${varName}:</label>
+                        <input type="text" id="var-${varName}" data-variable="${varName}" 
+                               placeholder="Enter ${varName}..." class="destination-variable">
+                    `;
+                    
+                    variablesContainer.appendChild(formGroup);
+                });
+
+                // 변수 입력 시 최종 destination 업데이트
+                variablesContainer.addEventListener('input', updateFinalDestination);
+            }
+        }
+
+        function updateFinalDestination() {
+            const baseDestination = document.getElementById('message-destination').value;
+            const finalDestinationInput = document.getElementById('final-destination');
+            
+            if (!baseDestination) {
+                finalDestinationInput.value = '';
+                return;
+            }
+
+            let finalDestination = baseDestination;
+            
+            // 모든 변수 입력 필드의 값으로 치환
+            const variableInputs = document.querySelectorAll('.destination-variable');
+            variableInputs.forEach(input => {
+                const varName = input.dataset.variable;
+                const varValue = input.value.trim();
+                if (varValue) {
+                    finalDestination = finalDestination.replace(`{${varName}}`, varValue);
+                }
+            });
+            
+            finalDestinationInput.value = finalDestination;
+        }
+
+        function sendMessage() {
+            if (!stompClient || !stompClient.connected) {
+                addLogEntry('error', 'Not connected to STOMP server');
+                return;
+            }
+
+            const finalDestination = document.getElementById('final-destination').value;
+            const payload = document.getElementById('message-payload').value.trim();
+
+            if (!finalDestination) {
+                addLogEntry('error', 'Please select a destination');
+                return;
+            }
+
+            // 변수가 아직 치환되지 않았는지 확인
+            if (finalDestination.includes('{') && finalDestination.includes('}')) {
+                addLogEntry('error', 'Please fill in all destination variables');
+                return;
+            }
+
+            try {
+                let messageBody = {};
+                if (payload) {
+                    // JSON validation
+                    messageBody = JSON.parse(payload);
+                }
+
+                // STOMP send
+                stompClient.send(finalDestination, {
+                    'content-type': 'application/json'
+                }, JSON.stringify(messageBody));
+                
+                addLogEntry('sent', `Sent to ${finalDestination}: ${JSON.stringify(messageBody)}`);
+                
+            } catch (error) {
+                if (error.name === 'SyntaxError') {
+                    addLogEntry('error', `Invalid JSON payload: ${error.message}`);
+                } else {
+                    addLogEntry('error', `Failed to send message: ${error.message}`);
+                }
+            }
+        }
+
+        function loadExampleMessage(destination) {
+            if (!destination || !apiSpec.operations) return;
+            
+            // 해당 destination과 매칭되는 operation 찾기
+            Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                if (operationSpec.action === 'send' && getChannelPathFromRef(operationSpec.channel) === destination) {
+                    if (operationSpec.messages && operationSpec.messages.length > 0) {
+                        const messageName = getMessageNameFromRef(operationSpec.messages[0]);
+                        const exampleJson = getMessageSchema(messageName);
+                        document.getElementById('message-payload').value = exampleJson;
+                    } else {
+                        document.getElementById('message-payload').value = '{}';
+                    }
+                }
+            });
+        }
+
+        function updateConnectionStatus(isConnected) {
+            const statusElement = document.getElementById('connection-status');
+            const connectBtn = document.getElementById('connect-btn');
+            const disconnectBtn = document.getElementById('disconnect-btn');
+            const sendBtn = document.getElementById('send-message-btn');
+
+            if (isConnected && stompClient && stompClient.connected) {
+                statusElement.textContent = 'Connected (STOMP)';
+                statusElement.className = 'status-connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                sendBtn.disabled = false;
+            } else {
+                statusElement.textContent = 'Disconnected';
+                statusElement.className = 'status-disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                sendBtn.disabled = true;
+            }
+        }
+
+        function addLogEntry(type, message) {
+            const logContainer = document.getElementById('message-log');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `
+                <span class="timestamp">[${timestamp}]</span>
+                <span class="message">${message}</span>
+            `;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function addSubscriptionLogEntry(type, topic, message) {
+            const logContainer = document.getElementById('subscription-log');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            
+            // JSON 메시지를 예쁘게 포맷팅
+            let formattedMessage = message;
+            try {
+                const jsonObj = JSON.parse(message);
+                formattedMessage = JSON.stringify(jsonObj, null, 2);
+            } catch (e) {
+                // JSON이 아니면 그대로 표시
+            }
+            
+            logEntry.innerHTML = `
+                <span class="timestamp">[${timestamp}]</span>
+                <div class="subscription-message">
+                    <div class="subscription-topic-header">${topic}</div>
+                    <pre class="subscription-content">${formattedMessage}</pre>
+                </div>
+            `;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearSubscriptionLog() {
+            const logContainer = document.getElementById('subscription-log');
+            logContainer.innerHTML = `
+                <div class="log-entry info">
+                    <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="message">Waiting for subscription messages...</span>
+                </div>
+            `;
+        }
+
+        function clearLog() {
+            const logContainer = document.getElementById('message-log');
+            logContainer.innerHTML = `
+                <div class="log-entry info">
+                    <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="message">Log cleared</span>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
