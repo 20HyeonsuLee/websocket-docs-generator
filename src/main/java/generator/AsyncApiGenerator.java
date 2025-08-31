@@ -158,43 +158,6 @@ public class AsyncApiGenerator {
         return operationNode;
     }
 
-
-    public Set<String> getParam() {
-        List<String> destinationParams = getDestinationParams();
-        List<String> messageResponseParams = getMessageResponseParams();
-        Set<String> ret = new HashSet<>(destinationParams.size() + messageResponseParams.size());
-        ret.addAll(destinationParams);
-        ret.addAll(messageResponseParams);
-        return ret;
-    }
-
-    public List<String> getDestinationParams() {
-        final List<String> ret = new ArrayList<>();
-        final Reflections reflections = new Reflections("coffeeshout", Scanners.MethodsAnnotated);
-        final Set<Method> methods = reflections.getMethodsAnnotatedWith(MessageMapping.class);
-        for (var method : methods) {
-            for (var param : method.getParameters()) {
-                if (isDestinationVariable(param)) {
-                    ret.add(param.getName());
-                }
-            }
-        }
-        return ret;
-    }
-
-    public List<String> getMessageResponseParams() {
-        final List<String> ret = new ArrayList<>();
-        final Reflections reflections = new Reflections("coffeeshout", Scanners.MethodsAnnotated);
-        final Set<Method> methods = reflections.getMethodsAnnotatedWith(MessageResponse.class);
-        for (var method : methods) {
-            MessageResponse annotation = method.getAnnotation(MessageResponse.class);
-            for (var payload : getParams(annotation.path())) {
-                ret.add(payload);
-            }
-        }
-        return ret;
-    }
-
     public JsonNode generateMeta() {
         final ObjectNode metadata = mapper.createObjectNode();
         metadata.put("title", "coffee-shout wesocket docs");
@@ -213,39 +176,6 @@ public class AsyncApiGenerator {
             messageNode.put(clazz.getSimpleName(), payloadNode);
         }
         return messageNode;
-    }
-
-
-    public JsonNode generateSchema2(ObjectNode schemaNode) {
-        final Reflections reflections = new Reflections("coffeeshout");
-
-        // ⚡ victools 설정
-        SchemaGeneratorConfigBuilder configBuilder =
-                new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_7, OptionPreset.PLAIN_JSON)
-                        .without(Option.DEFINITIONS_FOR_ALL_OBJECTS)   // definitions/ref 없애고 inline
-                        .without(Option.EXTRA_OPEN_API_FORMAT_VALUES); // 필요없으면 뺄 수 있음
-
-        // Enum 처리 커스터마이징
-        configBuilder.forFields().withEnumResolver(field -> {
-            JsonSchemaEnumType annotation = field.getAnnotation(JsonSchemaEnumType.class);
-            if (annotation != null) {
-                Class<? extends Enum<?>> enumClass = annotation.enumType();
-                return Arrays.stream(enumClass.getEnumConstants()).map(Enum::name).toList();
-            }
-            return null;
-        });
-
-        SchemaGeneratorConfig config = configBuilder.build();
-        SchemaGenerator generator = new SchemaGenerator(config);
-
-        // 커스텀 어노테이션 붙은 클래스만 스캔
-        Set<Class<?>> typesAnnotatedWith = reflections.getTypesAnnotatedWith(WebSocketMessage.class);
-        for (var clazz : typesAnnotatedWith) {
-            JsonNode schema = generator.generateSchema(clazz);
-            ((ObjectNode) schemaNode).set(clazz.getSimpleName(), schema);
-        }
-
-        return schemaNode;
     }
 
     public JsonNode generateSchema(ObjectNode schemaNode) {
@@ -322,24 +252,6 @@ public class AsyncApiGenerator {
         return ret;
     }
 
-    private JsonNode replaceRefWithDef(JsonNode node) {
-        if (node.isObject()) {
-            ObjectNode obj = (ObjectNode) node;
-            if (obj.has("$ref")) {
-                JsonNode refValue = obj.get("$ref");
-                obj.remove("$ref");
-                obj.set("$def", refValue);
-            }
-            obj.fields().forEachRemaining(entry -> replaceRefWithDef(entry.getValue()));
-        } else if (node.isArray()) {
-            ArrayNode arr = (ArrayNode) node;
-            for (JsonNode child : arr) {
-                replaceRefWithDef(child);
-            }
-        }
-        return node;
-    }
-
     public JsonNode generateAppChannel(ObjectNode channel) {
 
         final Reflections reflections = new Reflections("coffeeshout", Scanners.MethodsAnnotated);
@@ -359,9 +271,6 @@ public class AsyncApiGenerator {
                     messageNode.put(paramTypeName, messageParameterNode(paramTypeName));
                 }
             }
-//            if (!paramNode.isEmpty()) {
-//                body.put("parameters", paramNode);
-//            }
             if (!messageNode.isEmpty()) {
                 body.put("messages", messageNode);
             }
@@ -384,9 +293,6 @@ public class AsyncApiGenerator {
             }
             String returnTypeName = annotation.returnType().getSimpleName();
             messageNode.put(returnTypeName, messageParameterNode(returnTypeName));
-//            if (!paramNode.isEmpty()) {
-//                body.put("parameters", paramNode);
-//            }
             if (!messageNode.isEmpty()) {
                 body.put("messages", messageNode);
             }
