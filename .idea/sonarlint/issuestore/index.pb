@@ -34,3 +34,11 @@ b
 2src/test/java/MessageMappingRequestSchemaTest.java,0/9/09ee967fa4bfca0dc2ef16b61efbadaebf81a5c4
 _
 /src/main/java/generator/controller/TestDto.java,e/f/ef34aef49ee272d3e70ab872c8dbc2d65065bd17
+F
+gradle/properties.java,f/e/fe5417c0bfe73c572fad10986b149bddc1587b04
+A
+gradle.properties,2/a/2afbb999f001938c88fa43fc2ef52abf0f8213e4
+S
+#.idea/sonarlint/issuestore/index.pb,9/f/9fe84ebb15faf917b7def6236dba604453cc61e0
+]
+-.idea/sonarlint/securityhotspotstore/index.pb,8/8/88a9255124c95bdc913197c120a8d560edc59c8e
