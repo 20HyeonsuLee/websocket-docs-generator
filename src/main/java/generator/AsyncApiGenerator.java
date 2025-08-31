@@ -69,8 +69,8 @@ public class AsyncApiGenerator {
 
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         String yaml = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
-        System.out.println(yaml);
-        Path path = Paths.get("asyncapi.yml"); // 현재 실행 경로에 저장
+        Path path = Paths.get("static/asyncapi.yml");
+        Files.createDirectories(path.getParent());
         Files.write(path, yaml.getBytes(StandardCharsets.UTF_8));
         return yaml;
 

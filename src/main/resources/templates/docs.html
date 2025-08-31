@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket API Documentation</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" th:href="@{/style.css}">
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
@@ -187,7 +187,7 @@
         </main>
     </div>
 
-    <script>
+    <script th:inline="javascript">
         let apiSpec = null;
 
         // 페이지 로드 시 초기화
@@ -204,11 +204,9 @@
 
         // AsyncAPI 명세 로드
         async function loadApiSpec() {
-            const response = await fetch('asyncapi.yml');
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            const yamlContent = await response.text();
+            // Thymeleaf로 서버에서 전달된 YAML 데이터 직접 주입
+            const yamlContent = /*[[${asyncApiYml}]]*/ '';
+            console.log(yamlContent)
             apiSpec = jsyaml.load(yamlContent);
         }
 
