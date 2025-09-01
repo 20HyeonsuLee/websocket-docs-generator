@@ -1,5 +1,20 @@
 package generator;
 
+/*
+    TODO
+    - Extractor 만들기
+        - 특정 어노테이션이 붙은 Method 추출
+        - 특정 어노테이션이 붙은 Class 추출
+    - Channel 만들어 주는 클래스 작성
+        - AppChannel, TopicChannel
+    - Operation 만들어 주는 클래스 작성
+    - info 만들어 주는 클래스 작성
+    - Component 만들어 주는 클래스 작성
+        - Schema, Messages
+    - Channel, Operation, info, component 합쳐주는 클래스 만들기
+    - JsonNode 직관적으로 사용할 수 있게 도와주는 클래스 만들기
+ */
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -68,18 +83,7 @@ public class AsyncApiGenerator {
         root.put("components", components);
 
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-        String yaml = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
-        Path path = Paths.get("static/asyncapi.yml");
-        Files.createDirectories(path.getParent());
-        Files.write(path, yaml.getBytes(StandardCharsets.UTF_8));
-        return yaml;
-
-       /*
-       asyncapi generate fromTemplate asyncapi.yml @asyncapi/html-template@3.0.0 --use-new-generator -o ./output/dev --force-write -p singleFile=true
-       이 요청 보내서 파일 생성하기 index.html파일 생성하기
-
-
-        */
+        return yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
     }
 
     public JsonNode generateTopicOperation(ObjectNode operationNode) {
