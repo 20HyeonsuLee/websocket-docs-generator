@@ -1,73 +1,65 @@
 
-‹
-java:S1192f"HDefine a constant instead of duplicating this literal "channel" 3 times.(É„îâ8ìŸ«Î3J$3b274502-7007-4ac1-8a34-fd62bf71c88b
-
-java:S1192i"LDefine a constant instead of duplicating this literal "description" 3 times.(—Ê¢8íŸ«Î3J$75a74896-5882-48eb-88b4-8027b5be2017
-Š
-java:S1192f"GDefine a constant instead of duplicating this literal "/topic" 3 times.(É„îâ8íŸ«Î3J$eefdf74e-67a3-4c31-9b53-c939b992ad99
 
-java:S1192\"MDefine a constant instead of duplicating this literal "coffeeshout" 10 times.(à’ÍŸ8íŸ«Î3J$ccdbcbb9-5184-4d78-ac4c-567a59d6df45
+java:S1192q"HDefine a constant instead of duplicating this literal "channel" 3 times.(İ™òÏøÿÿÿÿ8È×•­3J$39a32340-771a-4435-8268-a4c759e082f5
+
+java:S1192t"LDefine a constant instead of duplicating this literal "description" 3 times.(—Ê¢8É×•­3J$fada939c-e858-435e-86ec-dd99cd65ecba
 ‘
-java:S1192A"IDefine a constant instead of duplicating this literal "messages" 6 times.(ø÷µııÿÿÿÿ8íŸ«Î3J$1146904e-79d8-4aa2-9f05-c26436c48f4a
+java:S1192X"IDefine a constant instead of duplicating this literal "messages" 6 times.(ø÷µııÿÿÿÿ8É×•­3J$16357982-443d-485c-b277-001273651b9d
+z
+java:S1135"2Complete the task associated to this TODO comment.(ĞÚ–şıÿÿÿÿ8Şêˆ3J$442d274d-2e5f-48a6-93f7-45987a097395
 n
-java:S1874;"+Remove this use of "put"; it is deprecated.(¶Ä¥‚8¦¡«Î3J$cc8875b4-9eb0-4406-9356-e97d5b207584
+java:S1874R"+Remove this use of "put"; it is deprecated.(¶Ä¥‚8¾šø¬3J$66fe03bd-80de-4086-95e7-bbf67406e3f6
 m
-java:S1874="+Remove this use of "put"; it is deprecated.(á®Ô[8¦¡«Î3J$cf4f528c-36d1-4d1f-9be2-2d5890b81cbb
+java:S1874T"+Remove this use of "put"; it is deprecated.(á®Ô[8¾šø¬3J$35bb7d4b-047b-4f6f-88ca-9185f22bb336
 n
-java:S1874>"+Remove this use of "put"; it is deprecated.(ªÿ˜»8§¡«Î3J$38a06feb-b19b-4d0a-bb8f-cbfa69d66fa0
+java:S1874U"+Remove this use of "put"; it is deprecated.(ªÿ˜»8¾šø¬3J$b4e37e7e-f458-4a27-982b-033805a920c0
 s
-java:S1874A"+Remove this use of "put"; it is deprecated.(ø÷µııÿÿÿÿ8§¡«Î3J$651366f2-3f9a-44a2-9e8b-f89880404381
+java:S1874X"+Remove this use of "put"; it is deprecated.(ø÷µııÿÿÿÿ8¾šø¬3J$f13073fa-8858-4ee2-b147-6b99f1b1670d
 s
-java:S1874B"+Remove this use of "put"; it is deprecated.(ÒüÅ´ıÿÿÿÿ8§¡«Î3J$04afe99d-7575-4d8f-80c2-3919c06bb135
+java:S1874Y"+Remove this use of "put"; it is deprecated.(ÒüÅ´ıÿÿÿÿ8ÿ×•­3J$be590c20-da61-4b16-8ab5-8e1fe882a1ff
 s
-java:S1874D"+Remove this use of "put"; it is deprecated.(Ù¹îöüÿÿÿÿ8§¡«Î3J$98c9dbc5-ef1f-4459-9d80-7a20b4072ab0
+java:S1874["+Remove this use of "put"; it is deprecated.(Ù¹îöüÿÿÿÿ8ÿ×•­3J$9966ff29-1ce8-4dbe-89fe-e8c1d370885e
+s
+java:S1874q"+Remove this use of "put"; it is deprecated.(İ™òÏøÿÿÿÿ8‚Ø•­3J$bcb7ff4f-5312-400e-a7d0-bd8e43ce2b48
+s
+java:S1874x"+Remove this use of "put"; it is deprecated.(¯¢¯Ïùÿÿÿÿ8ƒØ•­3J$3dccd8bc-23df-4899-a7a3-d2ba959437ec
+s
+java:S1874y"+Remove this use of "put"; it is deprecated.(¬ºÁÿüÿÿÿÿ8ƒØ•­3J$495e7bf4-142d-4dd1-ab19-66d7e88b32b9
+o
+java:S1874’"+Remove this use of "put"; it is deprecated.(“Ô†8…Ø•­3J$6cdc22d9-f671-40a9-97df-556644b56571
+t
+java:S1874"+Remove this use of "put"; it is deprecated.(¯¢¯Ïùÿÿÿÿ8†Ø•­3J$a710bf86-8baa-41b1-8a79-9764344b4085
+t
+java:S1874 "+Remove this use of "put"; it is deprecated.(Ü¯€Èúÿÿÿÿ8‡Ø•­3J$68f9e246-547a-4c3b-84da-e4de761b1370
 n
-java:S1874f"+Remove this use of "put"; it is deprecated.(É„îâ8¬¡«Î3J$a6dc7a05-19d7-496d-b021-2ded3d7cfc81
-s
-java:S1874m"+Remove this use of "put"; it is deprecated.(¯¢¯Ïùÿÿÿÿ8­¡«Î3J$cd8fb3cb-df0b-462a-9319-67437b38e951
-s
-java:S1874n"+Remove this use of "put"; it is deprecated.(¬ºÁÿüÿÿÿÿ8­¡«Î3J$4be24ea7-a284-4140-86be-9bb0b59f5973
+java:S1874£"+Remove this use of "put"; it is deprecated.(áÈd8‡Ø•­3J$a4421648-90cc-4c26-a4a2-01618abcbeaf
 t
-java:S1874ˆ"+Remove this use of "put"; it is deprecated.(¼‘›—ÿÿÿÿÿ8®¡«Î3J$ea21c185-1064-4461-86b9-c88166c3eb53
+java:S1874¤"+Remove this use of "put"; it is deprecated.(Õñ±Çüÿÿÿÿ8‡Ø•­3J$28b0afa0-7308-4233-b944-4f492b3f77c5
 t
-java:S1874“"+Remove this use of "put"; it is deprecated.(¯¢¯Ïùÿÿÿÿ8°¡«Î3J$bb43118e-f1bf-41a9-ac2f-ebca9862efe1
+java:S1874¥"+Remove this use of "put"; it is deprecated.(ÌåÛİüÿÿÿÿ8‡Ø•­3J$39aad5e8-cbdc-41cc-97c2-cea148522f0c
 t
-java:S1874–"+Remove this use of "put"; it is deprecated.(‹”€‘ûÿÿÿÿ8°¡«Î3J$b3c45ba9-9ca8-4fd9-a9f4-2a5b8c53bdbf
-n
-java:S1874™"+Remove this use of "put"; it is deprecated.(áÈd8±¡«Î3J$590a1728-b09d-477d-bc06-f3e4700daccb
-t
-java:S1874š"+Remove this use of "put"; it is deprecated.(Õñ±Çüÿÿÿÿ8±¡«Î3J$571624ac-7181-4c5b-9013-808a3e46f750
-t
-java:S1874›"+Remove this use of "put"; it is deprecated.(ÌåÛİüÿÿÿÿ8±¡«Î3J$65f7e648-9c24-493d-a462-a8d0451f3cf8
-¶
-java:S6485¥"mReplace this call to the constructor with the better suited static method HashSet.newHashSet(int numMappings)(µÕâ°ıÿÿÿÿ8³¡«Î3J$85cfcba6-93ce-4224-bada-10fa50ce42dd
-t
-java:S1874Ô"+Remove this use of "put"; it is deprecated.(Îëşøúÿÿÿÿ8¶¡«Î3J$2b1358cd-9396-40b1-9351-5b1cff0871d5
+java:S1874¹"+Remove this use of "put"; it is deprecated.(Îëşøúÿÿÿÿ8‰Ø•­3J$82dd50b9-453e-4b36-ab06-a1c042706490
 o
-java:S1874Õ"+Remove this use of "put"; it is deprecated.(ôÕœÙ8¶¡«Î3J$5b6275a0-b17f-4b3a-8d1f-0711c8b888cb
+java:S1874º"+Remove this use of "put"; it is deprecated.(ôÕœÙ8‰Ø•­3J$3b24fba5-3db3-42a1-bb30-23aa2a4ab2af
 v
-java:S1905õ"-Remove this unnecessary cast to "ObjectNode".(îäà«ùÿÿÿÿ8º¡«Î3J$75b00868-9406-4cad-8ce6-1b44d6c616cd
+java:S1905Ú"-Remove this unnecessary cast to "ObjectNode".(îäà«ùÿÿÿÿ8Ø•­3J$c04c970e-3f2d-488c-9bff-f5cde629359f
 v
-java:S1905—"-Remove this unnecessary cast to "ObjectNode".(îäà«ùÿÿÿÿ8¼¡«Î3J$a5736b17-5d63-4908-bf6c-51e179f5d513
-v
-java:S1905¢"-Remove this unnecessary cast to "ObjectNode".(ùàÚˆùÿÿÿÿ8½¡«Î3J$20e01f1a-8d54-498c-ab42-e711982bc4d0
+java:S1905å"-Remove this unnecessary cast to "ObjectNode".(ùàÚˆùÿÿÿÿ8Ø•­3J$1bf65842-cfec-47fb-9ead-e451e685aa9b
 o
-java:S1874å"+Remove this use of "put"; it is deprecated.(Û†¡Î8À¡«Î3J$b0c21d0a-790e-4071-8e81-ebe4bf31119a
+java:S1874“"+Remove this use of "put"; it is deprecated.(Û†¡Î8’Ø•­3J$5cb986f6-eddf-46d9-bf5a-243b2415e8cd
 t
-java:S1874ç"+Remove this use of "put"; it is deprecated.(ë¿úİúÿÿÿÿ8À¡«Î3J$1ccf142b-527c-4a00-b833-e0747c2c0bfb
-~	java:S125ê"<This block of commented-out lines of code should be removed.(ÊÕæ8Á¡«Î3J$60f14a81-9df9-4756-9869-adab829e1fc9
+java:S1874•"+Remove this use of "put"; it is deprecated.(ë¿úİúÿÿÿÿ8’Ø•­3J$be484622-edb7-413c-acda-18a6e2310633
 o
-java:S1874î"+Remove this use of "put"; it is deprecated.(İûæ8Á¡«Î3J$d1b0880f-cef3-4564-ae6c-98036e48c9d1
+java:S1874™"+Remove this use of "put"; it is deprecated.(İûæ8’Ø•­3J$18d239f1-d3cf-4af4-8c3d-dad9c100b8da
 o
-java:S1874ğ"+Remove this use of "put"; it is deprecated.(’Õ² 8Á¡«Î3J$d5610104-f5bb-46fc-a5ac-5d732d494137
+java:S1874›"+Remove this use of "put"; it is deprecated.(’Õ² 8’Ø•­3J$cdb75101-cc92-475c-bf9d-95bffce1615a
 o
-java:S1874ÿ"+Remove this use of "put"; it is deprecated.(Û†¡Î8Â¡«Î3J$7554d2bc-f354-4c15-8440-a4b6f34ee9ca
+java:S1874©"+Remove this use of "put"; it is deprecated.(Û†¡Î8“Ø•­3J$ef137c60-3ef3-45c6-80d3-94180b71a100
 t
-java:S1874‚"+Remove this use of "put"; it is deprecated.(ÂÎ°°ÿÿÿÿÿ8Â¡«Î3J$5a81b932-9792-4241-9f3b-579bc6f95158
-~	java:S125ƒ"<This block of commented-out lines of code should be removed.(ÊÕæ8Â¡«Î3J$a77cad46-64d5-47d5-a6ed-6da86b87bcfa
+java:S1874¬"+Remove this use of "put"; it is deprecated.(ÂÎ°°ÿÿÿÿÿ8“Ø•­3J$0e335261-6e10-4fcb-ba57-53753b6938d3
 o
-java:S1874‡"+Remove this use of "put"; it is deprecated.(İûæ8Â¡«Î3J$4bc0bbcf-80f1-408d-93c7-8e4fcc1a7eac
+java:S1874®"+Remove this use of "put"; it is deprecated.(İûæ8”Ø•­3J$86ede198-fd7d-477f-9d02-54f1751b833c
 o
-java:S1874‰"+Remove this use of "put"; it is deprecated.(’Õ² 8Â¡«Î3J$8288c0fb-75d2-45bd-99de-8ba80845fac1
+java:S1874°"+Remove this use of "put"; it is deprecated.(’Õ² 8”Ø•­3J$41003fc1-bd01-44d7-83c1-e16bd60617c8
 ‘
-java:S5361£"HReplace this call to "replaceAll()" by a call to the "replace()" method.(ºŞğñùÿÿÿÿ8Ä¡«Î3J$f44d30e6-10ea-4626-b595-329354cb8c2b
+java:S5361Ê"HReplace this call to "replaceAll()" by a call to the "replace()" method.(ºŞğñùÿÿÿÿ8Ä¡«Î3J$4a475e0a-d3c9-4787-b9e5-9a247f4e5c26
