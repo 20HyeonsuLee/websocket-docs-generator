@@ -82,7 +82,7 @@
                         <div class="connection-form">
                             <div class="form-group">
                                 <label for="ws-url">WebSocket URL:</label>
-                                <input type="text" id="ws-url" value="http://localhost:8080/ws/" placeholder="http://localhost:8080/ws/">
+                                <input type="text" id="ws-url" th:value="${websocketUrl}" placeholder="http://localhost:8080/ws">
                             </div>
                             <div class="connection-actions">
                                 <button id="connect-btn" class="btn btn-primary">Connect</button>
