@@ -9,7 +9,7 @@ plugins {
     signing
 }
 group = "io.github.20hyeonsulee"
-version = "1.0.5"
+version = "1.0.6"
 
 repositories {
     mavenCentral()
@@ -51,7 +51,7 @@ signing {
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
-    coordinates("io.github.20hyeonsulee", "websocket-docs-generator", "1.0.5")
+    coordinates("io.github.20hyeonsulee", "websocket-docs-generator", "1.0.6")
 
     pom {
         name = "WebSocket Docs Generator"
