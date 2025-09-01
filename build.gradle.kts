@@ -35,7 +35,7 @@ signing {
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
-    coordinates("io.github.20hyeonsulee", "websocket-docs-generator", "1.0.1")
+    coordinates("io.github.20hyeonsulee", "websocket-docs-generator", "1.0.2")
 
     pom {
         name = "WebSocket Docs Generator"
