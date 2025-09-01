@@ -29,15 +29,10 @@ import com.github.victools.jsonschema.generator.SchemaVersion;
 import generator.annotaions.JsonSchemaEnumType;
 import generator.annotaions.MessageResponse;
 import generator.annotaions.Operation;
-import generator.annotaions.WebSocketMessage;
+import generator.config.DocsProperties;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -52,7 +47,20 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 
 public class AsyncApiGenerator {
 
+    private static final String ASYNCAPI_VERSION = "3.0.0";
+    
     private final ObjectMapper mapper = new ObjectMapper();
+    private final DocsProperties properties;
+    private final Reflections reflections;
+
+    public AsyncApiGenerator(DocsProperties properties) {
+        this.properties = properties;
+        String basePackage = properties.getBasePackage();
+        if (basePackage == null || basePackage.trim().isEmpty()) {
+            basePackage = "coffeeshout";
+        }
+        this.reflections = new Reflections(basePackage, Scanners.MethodsAnnotated);
+    }
 
     public String generateAsyncapiYml() throws IOException {
         ObjectNode root = mapper.createObjectNode();
@@ -70,7 +78,7 @@ public class AsyncApiGenerator {
         generateSendOperation(operation);
         generateTopicOperation(operation);
 
-        root.put("asyncapi", "3.0.0");
+        root.put("asyncapi", ASYNCAPI_VERSION);
         root.put("info", generateMeta());
 
         root.put("channels", channel);
@@ -93,7 +101,6 @@ public class AsyncApiGenerator {
             3. Operation이 있으면 summery, description 정의
             4. MessageResponse있으면 reply정의
          */
-        final Reflections reflections = new Reflections("coffeeshout", Scanners.MethodsAnnotated);
         final Set<Method> methods = reflections.getMethodsAnnotatedWith(MessageResponse.class);
         for (var method : methods) {
             if (!isTopic(method)) {
@@ -103,7 +110,7 @@ public class AsyncApiGenerator {
             Operation operation = method.getAnnotation(Operation.class);
             MessageResponse messageResponse = method.getAnnotation(MessageResponse.class);
             body.put("action", "receive");
-            body.put("channel", operationChannelRef(messageResponse.path(), "/topic"));
+            body.put("channel", operationChannelRef(messageResponse.path(), properties.getTopicPath()));
             if (operation != null) {
                 body.put("summary", operation.summary());
                 body.put("description", operation.description());
@@ -129,7 +136,6 @@ public class AsyncApiGenerator {
             3. Operation이 있으면 summery, description 정의
             4. MessageResponse있으면 reply정의
          */
-        final Reflections reflections = new Reflections("coffeeshout", Scanners.MethodsAnnotated);
         final Set<Method> methods = reflections.getMethodsAnnotatedWith(MessageMapping.class);
         for (var method : methods) {
             ObjectNode body = mapper.createObjectNode();
@@ -137,7 +143,7 @@ public class AsyncApiGenerator {
             Operation operation = method.getAnnotation(Operation.class);
             MessageResponse messageResponse = method.getAnnotation(MessageResponse.class);
             body.put("action", "send");
-            body.put("channel", operationChannelRef(messageMapping.value()[0], "/app"));
+            body.put("channel", operationChannelRef(messageMapping.value()[0], properties.getAppPath()));
             if (operation != null) {
                 body.put("summary", operation.summary());
                 body.put("description", operation.description());
@@ -151,7 +157,7 @@ public class AsyncApiGenerator {
             body.put("messages", messagesArray);
             if (messageResponse != null) {
                 ObjectNode reply = mapper.createObjectNode();
-                reply.put("channel", operationChannelRef(messageResponse.path(), "/topic"));
+                reply.put("channel", operationChannelRef(messageResponse.path(), properties.getTopicPath()));
                 ArrayNode responseNodes = mapper.createArrayNode();
                 responseNodes.add(messageParameterNode(messageResponse.returnType().getSimpleName()));
                 reply.put("messages", responseNodes);
@@ -164,9 +170,9 @@ public class AsyncApiGenerator {
 
     public JsonNode generateMeta() {
         final ObjectNode metadata = mapper.createObjectNode();
-        metadata.put("title", "coffee-shout wesocket docs");
-        metadata.put("version", LocalDateTime.now().toString());
-        metadata.put("description", "커피빵에서 사용되는 웹소켓 명세서");
+        metadata.put("title", properties.getInfo().getTitle());
+        metadata.put("version", properties.getInfo().getVersion());
+        metadata.put("description", properties.getInfo().getDescription());
         return metadata;
     }
 
@@ -183,7 +189,6 @@ public class AsyncApiGenerator {
     }
 
     public JsonNode generateSchema(ObjectNode schemaNode) {
-        final Reflections reflections = new Reflections("coffeeshout", Scanners.MethodsAnnotated);
 
         // ⚡ victools 설정
         SchemaGeneratorConfigBuilder configBuilder =
@@ -229,7 +234,6 @@ public class AsyncApiGenerator {
     }
 
     private Set<Class<?>> getResponses() {
-        final Reflections reflections = new Reflections("coffeeshout", Scanners.MethodsAnnotated);
         final Set<Class<?>> ret = new HashSet<>();
         Set<Method> methods = reflections.getMethodsAnnotatedWith(MessageResponse.class);
         for (var method : methods) {
@@ -241,7 +245,6 @@ public class AsyncApiGenerator {
     }
 
     private Set<Class<?>> getRequests() {
-        final Reflections reflections = new Reflections("coffeeshout", Scanners.MethodsAnnotated);
         Set<Method> messageMappingMethods = reflections.getMethodsAnnotatedWith(MessageMapping.class);
         Set<Class<?>> ret = new HashSet<>();
         for (var method : messageMappingMethods) {
@@ -258,11 +261,10 @@ public class AsyncApiGenerator {
 
     public JsonNode generateAppChannel(ObjectNode channel) {
 
-        final Reflections reflections = new Reflections("coffeeshout", Scanners.MethodsAnnotated);
         final Set<Method> methods = reflections.getMethodsAnnotatedWith(MessageMapping.class);
         for (Method method : methods) {
             final MessageMapping annotation = method.getAnnotation(MessageMapping.class);
-            final String path = "/app" + annotation.value()[0];
+            final String path = properties.getAppPath() + annotation.value()[0];
             final ObjectNode body = mapper.createObjectNode();
             final ObjectNode messageNode = mapper.createObjectNode();
             final ObjectNode paramNode = mapper.createObjectNode();
@@ -284,11 +286,10 @@ public class AsyncApiGenerator {
     }
 
     public JsonNode generateTopicChannel(ObjectNode channel) {
-        final Reflections reflections = new Reflections("coffeeshout", Scanners.MethodsAnnotated);
         final Set<Method> methods = reflections.getMethodsAnnotatedWith(MessageResponse.class);
         for (Method method : methods) {
             final MessageResponse annotation = method.getAnnotation(MessageResponse.class);
-            final String path = "/topic" + annotation.path();
+            final String path = properties.getTopicPath() + annotation.path();
             final ObjectNode body = mapper.createObjectNode();
             final ObjectNode messageNode = mapper.createObjectNode();
             final ObjectNode paramNode = mapper.createObjectNode();

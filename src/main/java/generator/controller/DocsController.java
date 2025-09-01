@@ -1,31 +1,27 @@
 package generator.controller;
 
 import generator.AsyncApiGenerator;
-import java.io.IOException;
+import generator.config.DocsProperties;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
+@RequiredArgsConstructor
 public class DocsController {
 
-    private static AsyncApiGenerator generator = new AsyncApiGenerator();
-
-    private static String yml;
-
-    static {
-        try {
-            yml = generator.generateAsyncapiYml();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    private final AsyncApiGenerator generator;
+    private final DocsProperties properties;
 
     @GetMapping("/docs")
     @MessageMapping
+    @SneakyThrows
     public String docsPage(Model model) {
-        model.addAttribute("asyncApiYml", yml);
+        model.addAttribute("asyncApiYml", generator.generateAsyncapiYml());
+        model.addAttribute("websocketUrl", properties.getServerUrl());
         return "docs";
     }
 }

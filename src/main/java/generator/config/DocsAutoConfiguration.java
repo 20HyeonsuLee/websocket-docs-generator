@@ -1,14 +1,23 @@
 package generator.config;
 
+import generator.AsyncApiGenerator;
 import generator.controller.DocsController;
+import java.io.IOException;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 @AutoConfiguration
+@EnableConfigurationProperties(DocsProperties.class)
 public class DocsAutoConfiguration {
 
     @Bean
-    public DocsController docsController() {
-        return new DocsController();
+    public AsyncApiGenerator asyncApiGenerator(DocsProperties properties) {
+        return new AsyncApiGenerator(properties);
+    }
+
+    @Bean
+    public DocsController docsController(AsyncApiGenerator generator, DocsProperties properties) {
+        return new DocsController(generator, properties);
     }
 }
