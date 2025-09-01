@@ -1,0 +1,25 @@
+
+c
+java:S1192&"HDefine a constant instead of duplicating this literal "channel" 3 times.(ùµ‚ıÿÿÿÿ
+d
+java:S11923"IDefine a constant instead of duplicating this literal "messages" 3 times.(¯¢¯Ïùÿÿÿÿ
+F
+java:S1874&"+Remove this use of "put"; it is deprecated.(ùµ‚ıÿÿÿÿ
+F
+java:S18743"+Remove this use of "put"; it is deprecated.(¯¢¯Ïùÿÿÿÿ
+F
+java:S18747"+Remove this use of "put"; it is deprecated.(¹»Ç€ÿÿÿÿÿ
+@
+java:S1874:"+Remove this use of "put"; it is deprecated.(áÈd
+F
+java:S1874;"+Remove this use of "put"; it is deprecated.(Õñ±Çüÿÿÿÿ
+F
+java:S1874>"+Remove this use of "put"; it is deprecated.(ÌåÛİüÿÿÿÿ
+F
+java:S1874R"+Remove this use of "put"; it is deprecated.(»ìÙòøÿÿÿÿ
+F
+java:S1874["+Remove this use of "put"; it is deprecated.(¯¢¯Ïùÿÿÿÿ
+F
+java:S1874]"+Remove this use of "put"; it is deprecated.(¬ºÁÿüÿÿÿÿ
+d
+java:S5361"HReplace this call to "replaceAll()" by a call to the "replace()" method.(ºŞğñùÿÿÿÿ
