@@ -291,7 +291,7 @@
                                     ${generateDestinationVariablesInfo(destinationPath)}
                                 </div>
                                 <div class="payload-content">
-                                    <h5>Payload Type: <code>${messageName}</code></h5>
+                                    <h5>Payload Type: <code>${formatTypeNameForDisplay(messageName)}</code></h5>
                                     <div class="schema-tabs">
                                         <div class="tab-buttons">
                                             <button class="tab-button active" data-tab="example">Example</button>
@@ -351,7 +351,7 @@
                                     ${generateDestinationVariablesInfo(replyChannelPath)}
                                 </div>
                                 <div class="payload-content">
-                                    <h5>Payload Type: <code>${messageName}</code></h5>
+                                    <h5>Payload Type: <code>${formatTypeNameForDisplay(messageName)}</code></h5>
                                     <div class="schema-tabs">
                                         <div class="tab-buttons">
                                             <button class="tab-button active" data-tab="example">Example</button>
@@ -513,7 +513,30 @@
             if (!apiSpec.components || !apiSpec.components.messages) return '스키마 정보 없음';
             
             const messageSpec = apiSpec.components.messages[messageName];
-            if (!messageSpec || !messageSpec.payload || !messageSpec.payload.$ref) return '스키마 정보 없음';
+            if (!messageSpec || !messageSpec.payload) return '스키마 정보 없음';
+            
+            // List 타입인 경우 직접 배열 스키마 처리
+            if (messageSpec.payload.type === 'array' && messageSpec.payload.items) {
+                const itemSchemaRef = messageSpec.payload.items.$ref;
+                if (itemSchemaRef) {
+                    const itemSchemaName = itemSchemaRef.split('/').pop();
+                    const itemSchema = apiSpec.components.schemas[itemSchemaName];
+                    if (itemSchema) {
+                        const itemExample = generateSchemaExample(itemSchema);
+                        // 배열 형태로 래핑
+                        try {
+                            const itemObj = JSON.parse(itemExample);
+                            return JSON.stringify([itemObj], null, 2);
+                        } catch (e) {
+                            return `[${itemExample}]`;
+                        }
+                    }
+                }
+                return '[]';
+            }
+            
+            // 일반 타입인 경우
+            if (!messageSpec.payload.$ref) return '스키마 정보 없음';
             
             const schemaName = messageSpec.payload.$ref.split('/').pop();
             const schema = apiSpec.components.schemas[schemaName];
@@ -528,7 +551,41 @@
             if (!apiSpec.components || !apiSpec.components.messages) return '<p>스키마 정보 없음</p>';
             
             const messageSpec = apiSpec.components.messages[messageName];
-            if (!messageSpec || !messageSpec.payload || !messageSpec.payload.$ref) return '<p>스키마 정보 없음</p>';
+            if (!messageSpec || !messageSpec.payload) return '<p>스키마 정보 없음</p>';
+            
+            // List 타입인 경우 배열 스키마 처리
+            if (messageSpec.payload.type === 'array' && messageSpec.payload.items) {
+                const itemSchemaRef = messageSpec.payload.items.$ref;
+                if (itemSchemaRef) {
+                    const itemSchemaName = itemSchemaRef.split('/').pop();
+                    const itemSchema = apiSpec.components.schemas[itemSchemaName];
+                    if (itemSchema) {
+                        return `
+                            <div class="schema-node" data-depth="0">
+                                <div class="schema-node-header root-node">
+                                    <span class="schema-node-type array-type">Array</span>
+                                    <span class="schema-type-badge">array</span>
+                                </div>
+                                <div class="schema-node-children">
+                                    <div class="schema-field">
+                                        <div class="schema-node-header">
+                                            <span class="schema-field-name">items</span>
+                                            <span class="schema-type-badge object-type">${itemSchemaName}</span>
+                                        </div>
+                                        <div class="schema-node-children">
+                                            ${generateSchemaTreeNode(itemSchema, itemSchemaName, 1)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                return '<p>배열 스키마 정보 없음</p>';
+            }
+            
+            // 일반 타입인 경우
+            if (!messageSpec.payload.$ref) return '<p>스키마 정보 없음</p>';
             
             const schemaName = messageSpec.payload.$ref.split('/').pop();
             const schema = apiSpec.components.schemas[schemaName];
@@ -781,6 +838,17 @@
         // 유틸리티 함수들
         function sanitizeId(path) {
             return path.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        }
+
+        // 표시용 타입명 변환: List_User -> List<User>
+        function formatTypeNameForDisplay(typeName) {
+            if (typeName && typeName.includes('_')) {
+                const parts = typeName.split('_');
+                if (parts.length === 2) {
+                    return `${parts[0]}<${parts[1]}>`;
+                }
+            }
+            return typeName;
         }
 
         function getChannelDisplayName(channelPath) {

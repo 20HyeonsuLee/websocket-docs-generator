@@ -25,7 +25,6 @@ public class DocsController {
         if (!properties.isEnabled()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "문서 생성 기능이 비활성화되어 있습니다.");
         }
-        
         model.addAttribute("asyncApiYml", generator.generateAsyncapiYml());
         model.addAttribute("websocketUrl", properties.getServerUrl());
         return "docs";

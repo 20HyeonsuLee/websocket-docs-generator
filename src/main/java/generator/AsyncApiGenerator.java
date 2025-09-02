@@ -30,9 +30,12 @@ import generator.annotaions.JsonSchemaEnumType;
 import generator.annotaions.MessageResponse;
 import generator.annotaions.Operation;
 import generator.config.DocsProperties;
+import generator.util.TypeGenerator;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -48,7 +51,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 public class AsyncApiGenerator {
 
     private static final String ASYNCAPI_VERSION = "3.0.0";
-    
+
     private final ObjectMapper mapper = new ObjectMapper();
     private final DocsProperties properties;
     private final Reflections reflections;
@@ -116,7 +119,9 @@ public class AsyncApiGenerator {
                 body.put("description", operation.description());
             }
             ArrayNode messagesArray = mapper.createArrayNode();
-            messagesArray.add(messageParameterNode(messageResponse.returnType().getSimpleName()));
+            Type returnType = TypeGenerator.generateType(messageResponse.returnType(), messageResponse.genericType());
+            String messageTypeName = getSimpleTypeName(returnType);
+            messagesArray.add(messageParameterNode(messageTypeName));
             body.put("messages", messagesArray);
             operationNode.put(messageResponse.path(), body);
         }
@@ -159,7 +164,9 @@ public class AsyncApiGenerator {
                 ObjectNode reply = mapper.createObjectNode();
                 reply.put("channel", operationChannelRef(messageResponse.path(), properties.getTopicPath()));
                 ArrayNode responseNodes = mapper.createArrayNode();
-                responseNodes.add(messageParameterNode(messageResponse.returnType().getSimpleName()));
+                Type returnType = TypeGenerator.generateType(messageResponse.returnType(), messageResponse.genericType());
+                String messageTypeName = getSimpleTypeName(returnType);
+                responseNodes.add(messageParameterNode(messageTypeName));
                 reply.put("messages", responseNodes);
                 body.put("reply", reply);
                 operationNode.put(messageMapping.value()[0], body);
@@ -177,13 +184,26 @@ public class AsyncApiGenerator {
     }
 
     public JsonNode generateMessage(ObjectNode messageNode) {
-        Set<Class<?>> requests = getRequests();
-        Set<Class<?>> responses = getResponses();
+        Set<Type> requests = getRequests();
+        Set<Type> responses = getResponses();
         requests.addAll(responses);
-        for (var clazz : requests) {
+
+        // 기본 클래스들의 메시지 생성
+        for (var type : requests) {
+            String messageTypeName = getSimpleTypeName(type);
             ObjectNode payloadNode = mapper.createObjectNode();
-            payloadNode.put("payload", schemaNode(clazz.getSimpleName()));
-            messageNode.put(clazz.getSimpleName(), payloadNode);
+            
+            if (type.toString().startsWith("List_")) {
+                // List 타입의 경우 직접 array 스키마 생성
+                ObjectNode arraySchema = mapper.createObjectNode();
+                String genericName = type.toString().substring(5); // List_ 이후 부분
+                arraySchema.put("type", "array");
+                arraySchema.put("items", schemaNode(genericName));
+                payloadNode.put("payload", arraySchema);
+            } else {
+                payloadNode.put("payload", schemaNode(getSimpleTypeName(type)));
+            }
+            messageNode.put(messageTypeName, payloadNode);
         }
         return messageNode;
     }
@@ -213,9 +233,20 @@ public class AsyncApiGenerator {
         Set<Method> methods = reflections.getMethodsAnnotatedWith(MessageResponse.class);
         for (var method : methods) {
             MessageResponse annotation = method.getAnnotation(MessageResponse.class);
-            Class<?> clazz = annotation.returnType();
-            JsonNode schema = generator.generateSchema(clazz);
-            ((ObjectNode) schemaNode).set(clazz.getSimpleName(), schema);
+            Class<?> returnType = annotation.returnType();
+            Class<?> genericType = annotation.genericType();
+
+            // List가 아닌 returnType만 스키마에 추가
+            if (returnType != List.class) {
+                JsonNode schema = generator.generateSchema(returnType);
+                ((ObjectNode) schemaNode).set(returnType.getSimpleName(), schema);
+            }
+            
+            // 제네릭 타입이 있고 List가 아닌 경우 genericType 스키마 추가
+            if (genericType != null && genericType != Void.class && genericType != List.class) {
+                JsonNode genericSchema = generator.generateSchema(genericType);
+                ((ObjectNode) schemaNode).set(genericType.getSimpleName(), genericSchema);
+            }
         }
 
         Set<Method> messageMappingMethods = reflections.getMethodsAnnotatedWith(MessageMapping.class);
@@ -225,35 +256,103 @@ public class AsyncApiGenerator {
                 if (isDestinationVariable(parameter)) {
                     continue;
                 }
-                JsonNode schema = generator.generateSchema(parameter.getType());
-                ((ObjectNode) schemaNode).set(parameter.getType().getSimpleName(), schema);
+                
+                Type paramType = parameter.getParameterizedType();
+                
+                // List<T> 형태인 경우 T만 스키마에 추가
+                if (paramType instanceof ParameterizedType) {
+                    ParameterizedType pType = (ParameterizedType) paramType;
+                    if (pType.getRawType().equals(List.class)) {
+                        Type actualTypeArg = pType.getActualTypeArguments()[0];
+                        if (actualTypeArg instanceof Class) {
+                            Class<?> genericClass = (Class<?>) actualTypeArg;
+                            JsonNode schema = generator.generateSchema(genericClass);
+                            ((ObjectNode) schemaNode).set(genericClass.getSimpleName(), schema);
+                        }
+                    } else {
+                        // 다른 제네릭 타입의 경우 raw type 사용
+                        Class<?> rawType = (Class<?>) pType.getRawType();
+                        JsonNode schema = generator.generateSchema(rawType);
+                        ((ObjectNode) schemaNode).set(rawType.getSimpleName(), schema);
+                    }
+                } else {
+                    // 일반 클래스인 경우
+                    Class<?> paramClass = (Class<?>) paramType;
+                    JsonNode schema = generator.generateSchema(paramClass);
+                    ((ObjectNode) schemaNode).set(paramClass.getSimpleName(), schema);
+                }
             }
         }
 
         return schemaNode;
     }
 
-    private Set<Class<?>> getResponses() {
-        final Set<Class<?>> ret = new HashSet<>();
+//    public JsonNode generateSchemaV2(ObjectNode schemaNode) {
+//
+//        // ⚡ victools 설정
+//        SchemaGeneratorConfigBuilder configBuilder =
+//                new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_7, OptionPreset.PLAIN_JSON)
+//                        .without(Option.DEFINITIONS_FOR_ALL_OBJECTS)   // definitions/ref 없애고 inline
+//                        .without(Option.EXTRA_OPEN_API_FORMAT_VALUES); // 필요없으면 뺄 수 있음
+//
+//        // Enum 처리 커스터마이징
+//        configBuilder.forFields().withEnumResolver(field -> {
+//            JsonSchemaEnumType annotation = field.getAnnotation(JsonSchemaEnumType.class);
+//            if (annotation != null) {
+//                Class<? extends Enum<?>> enumClass = annotation.enumType();
+//                return Arrays.stream(enumClass.getEnumConstants()).map(Enum::name).toList();
+//            }
+//            return null;
+//        });
+//
+//        SchemaGeneratorConfig config = configBuilder.build();
+//        SchemaGenerator generator = new SchemaGenerator(config);
+//
+//        // 커스텀 어노테이션 붙은 클래스만 스캔
+//        Set<Method> methods = reflections.getMethodsAnnotatedWith(MessageResponse.class);
+//        for (var method : methods) {
+//            MessageResponse annotation = method.getAnnotation(MessageResponse.class);
+//            Class<?> clazz = annotation.returnType();
+//            JsonNode schema = generator.generateSchema(clazz);
+//            ((ObjectNode) schemaNode).set(clazz.getSimpleName(), schema);
+//        }
+//
+//        Set<Method> messageMappingMethods = reflections.getMethodsAnnotatedWith(MessageMapping.class);
+//        for (var method : messageMappingMethods) {
+//            Parameter[] parameters = method.getParameters();
+//            for (var parameter : parameters) {
+//                if (isDestinationVariable(parameter)) {
+//                    continue;
+//                }
+//                JsonNode schema = generator.generateSchema(parameter.getType());
+//                ((ObjectNode) schemaNode).set(parameter.getType().getSimpleName(), schema);
+//            }
+//        }
+//
+//        return schemaNode;
+//    }
+
+    private Set<Type> getResponses() {
+        final Set<Type> ret = new HashSet<>();
         Set<Method> methods = reflections.getMethodsAnnotatedWith(MessageResponse.class);
         for (var method : methods) {
             MessageResponse annotation = method.getAnnotation(MessageResponse.class);
-            Class<?> clazz = annotation.returnType();
-            ret.add(clazz);
+            ret.add(TypeGenerator.generateType(annotation.returnType(), annotation.genericType()));
         }
         return ret;
     }
 
-    private Set<Class<?>> getRequests() {
-        Set<Method> messageMappingMethods = reflections.getMethodsAnnotatedWith(MessageMapping.class);
-        Set<Class<?>> ret = new HashSet<>();
+    private Set<Type> getRequests() {
+        final Set<Type> ret = new HashSet<>();
+        final Set<Method> messageMappingMethods = reflections.getMethodsAnnotatedWith(MessageMapping.class);
         for (var method : messageMappingMethods) {
             Parameter[] parameters = method.getParameters();
             for (var parameter : parameters) {
                 if (isDestinationVariable(parameter)) {
                     continue;
                 }
-                ret.add(parameter.getType());
+                // 파라미터의 실제 제네릭 타입 정보 사용
+                ret.add(parameter.getParameterizedType());
             }
         }
         return ret;
@@ -270,10 +369,12 @@ public class AsyncApiGenerator {
             final ObjectNode paramNode = mapper.createObjectNode();
             for (var param : method.getParameters()) {
                 String paramName = param.getName();
-                String paramTypeName = param.getType().getSimpleName();
                 if (isDestinationVariable(param)) {
                     paramNode.put(paramName, refParameterNode(paramName));
                 } else {
+                    // 파라미터의 실제 제네릭 타입 정보 추출
+                    Type paramType = param.getParameterizedType();
+                    String paramTypeName = getSimpleTypeName(paramType);
                     messageNode.put(paramTypeName, messageParameterNode(paramTypeName));
                 }
             }
@@ -296,8 +397,9 @@ public class AsyncApiGenerator {
             for (var paramName : getParams(path)) {
                 paramNode.put(paramName, refParameterNode(paramName));
             }
-            String returnTypeName = annotation.returnType().getSimpleName();
-            messageNode.put(returnTypeName, messageParameterNode(returnTypeName));
+            Type returnType = TypeGenerator.generateType(annotation.returnType(), annotation.genericType());
+            String messageTypeName = getSimpleTypeName(returnType);
+            messageNode.put(messageTypeName, messageParameterNode(messageTypeName));
             if (!messageNode.isEmpty()) {
                 body.put("messages", messageNode);
             }
@@ -346,5 +448,49 @@ public class AsyncApiGenerator {
             results.add(matcher.group(1));
         }
         return results;
+    }
+
+    /**
+     * Type에서 간단한 타입명을 추출합니다.
+     * 패키지명 없이 클래스명만 반환하며, JSON 호환성을 위해 <> 를 _로 변경합니다.
+     */
+    private String getSimpleTypeName(Type type) {
+        String typeString = type.toString();
+        
+        // List<coffeeshout.room.ui.request.ReadyChangeMessage> -> List_ReadyChangeMessage
+        if (typeString.contains("<") && typeString.contains(">")) {
+            int startIndex = typeString.indexOf('<') + 1;
+            int endIndex = typeString.lastIndexOf('>');
+            String innerType = typeString.substring(startIndex, endIndex);
+            
+            // 패키지명 제거
+            String simpleInnerType = innerType.contains(".") 
+                ? innerType.substring(innerType.lastIndexOf('.') + 1)
+                : innerType;
+                
+            String outerType = typeString.substring(0, typeString.indexOf('<'));
+            return outerType + "_" + simpleInnerType;  // <> 대신 _ 사용
+        } else {
+            // 단순 타입: coffeeshout.room.ui.request.ReadyChangeMessage -> ReadyChangeMessage
+            return typeString.contains(".") 
+                ? typeString.substring(typeString.lastIndexOf('.') + 1)
+                : typeString;
+        }
+    }
+    
+    /**
+     * MessageResponse 애노테이션에서 메시지 타입명을 생성합니다. 제네릭 타입이 있으면 "ReturnType<GenericType>" 형태로, 없으면 "ReturnType"으로 반환합니다.
+     */
+    private String getMessageTypeName(MessageResponse annotation) {
+        Class<?> returnType = annotation.returnType();
+        Class<?> genericType = annotation.genericType();
+
+        if (genericType != null && genericType != Void.class) {
+            // 제네릭 타입이 있는 경우: List<User> -> ListUser
+            return returnType.getSimpleName() + genericType.getSimpleName();
+        } else {
+            // 제네릭 타입이 없는 경우
+            return returnType.getSimpleName();
+        }
     }
 }
