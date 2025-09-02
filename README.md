@@ -5,6 +5,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.20hyeonsulee/websocket-docs-generator.svg)](https://search.maven.org/artifact/io.github.20hyeonsulee/websocket-docs-generator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/java-17+-blue.svg)](https://openjdk.java.net/)
+[![Version](https://img.shields.io/badge/version-1.0.7-blue.svg)](https://github.com/20HyeonsuLee/websocket-docs-generator)
 
 ## 📋 개요
 
@@ -19,6 +20,8 @@ Spring Boot 기반의 WebSocket/STOMP 애플리케이션을 위한 **AsyncAPI 3.
 - 🔧 **Spring Boot 통합**: Auto-Configuration으로 즉시 사용 가능
 - 🎯 **JSON Schema 자동 생성**: DTO 클래스에서 스키마 자동 추출
 - 🛠️ **운영 환경 지원**: 프로덕션 환경에서 문서 비활성화 가능
+- 📋 **제네릭 타입 지원**: `List<User>`, `Optional<String>` 등 1-depth 제네릭 타입 완벽 지원
+- 🎭 **스마트 타입 처리**: 복잡한 패키지명을 간단한 클래스명으로 자동 변환
 
 ## 🏗️ 아키텍처 & 컨셉
 
@@ -79,7 +82,7 @@ src/main/java/generator/
 **Gradle (Kotlin DSL)**
 ```kotlin
 dependencies {
-    implementation("io.github.20hyeonsulee:websocket-docs-generator:1.0.6")
+    implementation("io.github.20hyeonsulee:websocket-docs-generator:1.0.7")
 }
 ```
 
@@ -88,7 +91,7 @@ dependencies {
 <dependency>
     <groupId>io.github.20hyeonsulee</groupId>
     <artifactId>websocket-docs-generator</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
 </dependency>
 ```
 
@@ -159,6 +162,18 @@ public class ChatController {
         ChatMessage message = new ChatMessage(request.getContent(), request.getSender(), roomId);
         messagingTemplate.convertAndSend("/topic/room/" + roomId, message);
     }
+    
+    // 🆕 제네릭 타입 지원 예시
+    @Operation(
+        summary = "사용자 목록 조회",
+        description = "채팅방의 모든 사용자 목록을 반환합니다"
+    )
+    @MessageMapping("/chat/users/{roomId}")
+    @MessageResponse(path = "/room/{roomId}/users", returnType = List.class, genericType = User.class)
+    public void getUserList(@DestinationVariable String roomId) {
+        List<User> users = chatService.getUsersInRoom(roomId);
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/users", users);
+    }
 }
 ```
 
@@ -197,7 +212,34 @@ enum MessageType {
 
 ### 3. 문서 접근
 
-애플리케이션 실행 후 `http://localhost:8080/docs` 에 접속하면 자동 생성된 WebSocket API 문서를 확인할 수 있습니다.
+애플리케이션 실행 후 `http://localhost:8080/docs`에 접속하면 자동 생성된 WebSocket API 문서를 확인할 수 있습니다.
+
+### 4. 🆕 제네릭 타입 사용 예시
+
+**1-depth 제네릭 타입을 완벽 지원합니다:**
+
+```java
+// List 타입
+@MessageResponse(path = "/users", returnType = List.class, genericType = User.class)
+// → 문서에서 "List<User>"로 표시, 배열 스키마 자동 생성
+
+// Optional 타입  
+@MessageResponse(path = "/result", returnType = Optional.class, genericType = String.class)
+// → 문서에서 "Optional<String>"로 표시
+
+// Map 타입
+@MessageResponse(path = "/data", returnType = Map.class, genericType = Object.class)
+// → 문서에서 "Map<Object>"로 표시
+
+// 제네릭 없는 일반 타입
+@MessageResponse(path = "/user", returnType = User.class)
+// → 문서에서 "User"로 표시
+```
+
+**생성되는 문서 형태:**
+- **Messages**: `List<User>`, `Optional<String>` 등으로 직관적 표시
+- **Example**: `[{User 객체 예시}]` 형태의 배열 예시 자동 생성
+- **Schema**: List 자체가 아닌 제네릭 타입(`User`)의 스키마만 생성
 
 ## 🎨 생성되는 문서 기능
 
@@ -216,7 +258,7 @@ enum MessageType {
 
 ## 🔧 고급 설정
 
-### Enum 타입 스키마 생성
+### 1. Enum 타입 스키마 생성
 
 ```java
 public class OrderRequest {
@@ -225,7 +267,7 @@ public class OrderRequest {
 }
 ```
 
-### 복잡한 중첩 객체 지원
+### 2. 복잡한 중첩 객체 지원
 
 ```java  
 public class GameState {
@@ -235,6 +277,36 @@ public class GameState {
     private Map<String, Object> metadata;  // Map 타입도 지원
 }
 ```
+
+### 3. 🆕 제네릭 타입 고급 활용
+
+```java
+// 복잡한 제네릭 파라미터 처리
+@MessageMapping("/game/players/{gameId}")
+public void updatePlayers(@DestinationVariable String gameId, List<PlayerUpdate> updates) {
+    // List<PlayerUpdate> 자동 인식 및 스키마 생성
+}
+
+// 제네릭 응답 타입
+@MessageResponse(path = "/game/{gameId}/results", returnType = Optional.class, genericType = GameResult.class)
+public void sendGameResult(@DestinationVariable String gameId) {
+    // Optional<GameResult> 타입으로 문서 생성
+}
+```
+
+### 4. 스마트 타입 이름 처리
+
+라이브러리는 자동으로 복잡한 패키지명을 처리합니다:
+
+- **Java 코드**: `com.example.chat.dto.ChatMessageRequest`
+- **문서 표시**: `ChatMessageRequest`
+- **제네릭**: `java.util.List<com.example.User>` → `List<User>`
+
+### 5. JSON 호환성 보장
+
+내부적으로 제네릭 타입을 JSON 호환 형태로 처리:
+- **내부 키**: `List_User` (JSON 파싱용)
+- **사용자 표시**: `List<User>` (직관적 표시)
 
 ## 🚀 개발 환경 설정
 
@@ -272,6 +344,14 @@ operations:
     reply:
       channel: '/topic/room/{roomId}'
       messages: [UserJoinedEvent]
+      
+  '/chat/users/{roomId}':  # 🆕 제네릭 타입 예시
+    action: send
+    summary: 사용자 목록 조회
+    channel: '/app/chat/users/{roomId}'
+    reply:
+      channel: '/topic/room/{roomId}/users'
+      messages: [List_User]  # 내부적으로 List_User로 처리
 ```
 
 ### 실시간 게임 상태 동기화
@@ -284,11 +364,29 @@ operations:
     reply:
       channel: '/topic/game/{gameId}/state'  
       messages: [GameStateUpdate]
+      
+  '/game/players/{gameId}':  # 🆕 List 파라미터 지원
+    action: send
+    channel: '/app/game/players/{gameId}'
+    messages: [List_PlayerUpdate]
 ```
+
+### 문서에서의 표시
+실제 문서에서는 사용자 친화적으로 표시됩니다:
+- **Payload Type**: `List<User>` (화면 표시)
+- **Example**: `[{"id": 1, "name": "사용자1"}, {"id": 2, "name": "사용자2"}]`
+- **Schema Tree**: Array > items > User 구조
 
 ## 🔄 버전 히스토리
 
-- **1.0.6**: 최신 안정 버전
+- **1.0.7**: 🆕 최신 버전
+  - **제네릭 타입 완벽 지원**: `List<User>`, `Optional<String>` 등 1-depth 제네릭 타입
+  - **스마트 타입 표시**: 패키지명 자동 제거 및 직관적 타입명 표시
+  - **배열 스키마 개선**: List 반환 타입의 올바른 스키마 생성 및 예시 표시
+  - **JSON 호환성**: 내부적으로 `<>` → `_` 변환하여 JSON 파싱 오류 해결
+  - **UI 개선**: `List_User` → `List<User>` 형태로 사용자 친화적 표시
+
+- **1.0.6**: 운영 환경 지원 버전
   - 운영 환경 문서 비활성화 기능 (`enabled: false`)
   - JSON Schema enum 타입 개선
   - 인터랙티브 테스트 UI 성능 개선
