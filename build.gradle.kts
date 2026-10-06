@@ -6,7 +6,7 @@ plugins {
     // This is a library: the Boot plugin is only referenced for its BOM coordinates, never applied.
     id("org.springframework.boot") apply false
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.vanniktech.maven.publish") version "0.28.0"
+    id("com.vanniktech.maven.publish") version "0.37.0"
     signing
 }
 
