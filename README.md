@@ -12,9 +12,9 @@ handler in your application, the messages it receives, the messages it publishes
 read from the Spring container, not from annotations you have to write. The page includes a STOMP client so you can
 subscribe and send messages the same way you try requests in Swagger UI.
 
-<img width="1431" height="647" alt="operations" src="https://github.com/user-attachments/assets/6f4cd735-f13f-42a6-921e-84bb24ff4bac" />
-<img width="1237" height="715" alt="schemas" src="https://github.com/user-attachments/assets/f4198c91-d8c6-48f3-bcdf-83c6f9cba04c" />
-<img width="1208" height="652" alt="test console" src="https://github.com/user-attachments/assets/8338e940-6596-4e36-8dc4-ae89cf05f528" />
+<img alt="Operations: every handler with its request payload, path variables and the message it publishes" src="docs/images/operations.png" />
+<img alt="Schemas: example payloads and JSON Schema for every DTO" src="docs/images/schemas.png" />
+<img alt="STOMP console: connect, subscribe and send messages from the docs page" src="docs/images/console.png" />
 
 ## Why
 

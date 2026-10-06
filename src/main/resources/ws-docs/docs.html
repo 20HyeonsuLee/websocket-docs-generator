@@ -837,16 +837,12 @@
             return html;
         }
 
-        // Generate schema example
+        // Generate schema example (resolves $ref so nested DTOs are expanded instead of null)
         function generateSchemaExample(schema) {
-            if (!schema.properties) return '{}';
-            
-            const example = generateExampleObject(schema);
-            let jsonString = JSON.stringify(example, null, 2);
-            
-            // Add comments for enum values
-            jsonString = addEnumComments(jsonString, schema);
-            return jsonString;
+            const resolved = resolveSchema(schema);
+            if (!resolved.properties) return '{}';
+            let jsonString = JSON.stringify(exampleFor(resolved, 'value'), null, 2);
+            return addEnumComments(jsonString, resolved);
         }
 
         // Add enum comments
@@ -867,69 +863,6 @@
             });
             
             return jsonString;
-        }
-
-        // Create example object (nested objects handled recursively)
-        function generateExampleObject(schema) {
-            if (!schema.properties) return {};
-            
-            const example = {};
-            Object.entries(schema.properties).forEach(([propName, propSpec]) => {
-                if (propSpec.type === 'string') {
-                    if (propSpec.enum) {
-                        example[propName] = propSpec.enum[0];
-                    } else if (propSpec.const) {
-                        example[propName] = propSpec.const;
-                    } else {
-                        example[propName] = `example ${propName}`;
-                    }
-                } else if (propSpec.type === 'integer') {
-                    example[propName] = 1;
-                } else if (propSpec.type === 'number') {
-                    example[propName] = 1.0;
-                } else if (propSpec.type === 'boolean') {
-                    example[propName] = true;
-                } else if (propSpec.type === 'array') {
-                    if (propSpec.items) {
-                        if (propSpec.items.type === 'object' && propSpec.items.properties) {
-                            // Object inside an array
-                            example[propName] = [generateExampleObject(propSpec.items)];
-                        } else if (propSpec.items.type === 'string') {
-                            if (propSpec.items.enum) {
-                                example[propName] = [propSpec.items.enum[0]];
-                            } else if (propSpec.items.const) {
-                                example[propName] = [propSpec.items.const];
-                            } else {
-                                example[propName] = [`example ${propName} item`];
-                            }
-                        } else {
-                            example[propName] = [getDefaultValueForType(propSpec.items.type)];
-                        }
-                    } else {
-                        example[propName] = [];
-                    }
-                } else if (propSpec.type === 'object' && propSpec.properties) {
-                    // Create nested objects recursively
-                    example[propName] = generateExampleObject(propSpec);
-                } else {
-                    example[propName] = getDefaultValueForType(propSpec.type);
-                }
-            });
-
-            return example;
-        }
-
-        // Return default value by type
-        function getDefaultValueForType(type) {
-            switch (type) {
-                case 'string': return 'example string';
-                case 'integer': return 1;
-                case 'number': return 1.0;
-                case 'boolean': return true;
-                case 'array': return [];
-                case 'object': return {};
-                default: return null;
-            }
         }
 
         // Return CSS class by type
