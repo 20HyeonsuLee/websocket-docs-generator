@@ -89,9 +89,10 @@ tasks.test {
     }
 }
 
-// Sign only when a Maven Central publish task (publishToMavenCentral*) was requested,
-// so build / publishToMavenLocal work without a GPG key.
+// Sign only when a Maven Central publish task (publishToMavenCentral*) was requested or an in-memory key is
+// supplied, so build / publishToMavenLocal work without a GPG key.
 val signingRequested = gradle.startParameter.taskNames.any { it.contains("MavenCentral") }
+        || project.hasProperty("signingInMemoryKey")
 
 if (signingRequested) {
     signing {
