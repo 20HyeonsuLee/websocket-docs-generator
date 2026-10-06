@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket API Documentation</title>
+    <link rel="stylesheet" href="__WS_DOCS_BASE__/style.css">
+    <script>window.WS_DOCS_CONFIG = __WS_DOCS_CONFIG__;</script>
+    <script src="__WS_DOCS_BASE__/vendor/sockjs.min.js"></script>
+    <script src="__WS_DOCS_BASE__/vendor/stomp.umd.min.js"></script>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading API documentation...</p>
+    </div>
+    
+    <div id="error" class="error" style="display: none;">
+        <h2>Something went wrong</h2>
+        <p id="error-message"></p>
+        <button onclick="location.reload()">Retry</button>
+    </div>
+
+    <div id="app" class="container" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 id="api-title"></h1>
+                    <div class="api-info">
+                        <span id="api-version" class="version"></span>
+                        <span id="asyncapi-version" class="asyncapi-version"></span>
+                    </div>
+                    <p id="api-description" class="description"></p>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <a id="header-download-yaml" class="btn btn-secondary btn-sm" href="#" download="asyncapi.yaml" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; text-decoration: none;">⬇ asyncapi.yaml</a>
+                    <button id="header-collapse-all-btn" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">📋 Collapse All</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="sidebar">
+            <div id="nav-operations" class="nav-section">
+                <h3>WebSocket Operations</h3>
+                <ul class="nav-list" id="operations-nav-list">
+                    <!-- Generated dynamically -->
+                </ul>
+            </div>
+            <div class="nav-section">
+                <h3>DTO Schemas</h3>
+                <ul class="nav-list">
+                    <li><a href="#schemas">All Schemas</a></li>
+                </ul>
+            </div>
+            <div class="nav-section">
+                <h3>WebSocket Test</h3>
+                <ul class="nav-list">
+                    <li><a href="#websocket-test">Connection Test</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="content">
+            <!-- Operations Section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>WebSocket API Operations</h2>
+                </div>
+                <div id="operations-container">
+                    <!-- Generated dynamically -->
+                </div>
+            </section>
+
+            <!-- WebSocket Test Section -->
+            <section id="websocket-test" class="section">
+                <h2>WebSocket Connection Test</h2>
+                <div class="websocket-test-container">
+                    <div class="connection-panel">
+                        <h3>Connection Settings</h3>
+                        <div class="connection-form">
+                            <div class="form-group">
+                                <label for="ws-url">WebSocket URL:</label>
+                                <input type="text" id="ws-url" placeholder="http://localhost:8080/ws">
+                            </div>
+                            <div class="connection-actions">
+                                <button id="connect-btn" class="btn btn-primary">Connect</button>
+                                <button id="disconnect-btn" class="btn btn-secondary" disabled>Disconnect</button>
+                                <span id="connection-status" class="status-disconnected">Disconnected</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message-panel">
+                        <h3>Send Message</h3>
+                        <div class="message-form">
+                            <div class="form-group">
+                                <label for="message-destination">Destination:</label>
+                                <select id="message-destination">
+                                    <option value="">Select destination...</option>
+                                </select>
+                            </div>
+                            <div id="destination-variables" class="destination-variables">
+                                <!-- Dynamically generated variable input fields -->
+                            </div>
+                            <div class="form-group">
+                                <label for="final-destination">Final Destination:</label>
+                                <input type="text" id="final-destination" readonly placeholder="Select destination first...">
+                            </div>
+                            <div class="form-group">
+                                <label for="message-payload">Message Payload (JSON):</label>
+                                <textarea id="message-payload" rows="6" placeholder='{"key": "value"}'></textarea>
+                            </div>
+                            <div class="message-actions">
+                                <button id="send-message-btn" class="btn btn-primary" disabled>Send Message</button>
+                                <button id="go-to-operation-btn" class="btn btn-info" disabled>Go to Operation</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subscription-panel">
+                        <h3>Subscriptions</h3>
+                        <div class="subscription-form">
+                            <div class="form-group">
+                                <label for="subscription-topic">Topic to Subscribe:</label>
+                                <select id="subscription-topic">
+                                    <option value="">Select topic...</option>
+                                </select>
+                            </div>
+                            <div id="subscription-variables" class="destination-variables">
+                                <!-- Dynamically generated variable input fields -->
+                            </div>
+                            <div class="form-group">
+                                <label for="final-subscription">Final Topic:</label>
+                                <input type="text" id="final-subscription" readonly placeholder="Select topic first...">
+                            </div>
+                            <div class="subscription-actions">
+                                <button id="subscribe-btn" class="btn btn-primary" disabled>Subscribe</button>
+                                <button id="unsubscribe-all-btn" class="btn btn-secondary">Unsubscribe All</button>
+                                <button id="go-to-topic-btn" class="btn btn-info" disabled>Go to Topic</button>
+                            </div>
+                        </div>
+                        <div class="active-subscriptions">
+                            <h4>Active Subscriptions:</h4>
+                            <div id="subscriptions-list" class="subscriptions-list">
+                                <div class="no-subscriptions">No active subscriptions</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="log-panel">
+                        <div class="log-header">
+                            <h3>Connection & Send Log</h3>
+                            <button id="clear-connection-log-btn" class="btn btn-secondary btn-sm">Clear</button>
+                        </div>
+                        <div id="message-log" class="message-log">
+                            <div class="log-entry info">
+                                <span class="timestamp">[--:--:--]</span>
+                                <span class="message">Ready to connect...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subscription-log-panel">
+                        <div class="log-header">
+                            <h3>Subscription Messages</h3>
+                            <button id="clear-subscription-log-btn" class="btn btn-secondary btn-sm">Clear</button>
+                        </div>
+                        <div id="subscription-log" class="message-log">
+                            <div class="log-entry info">
+                                <span class="timestamp">[--:--:--]</span>
+                                <span class="message">No active subscriptions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DTO Schemas Section -->
+            <section id="schemas" class="section">
+                <h2>DTO Schemas</h2>
+                <div id="schemas-container">
+                    <!-- Generated dynamically -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const wsDocsConfig = window.WS_DOCS_CONFIG || {};
+        let apiSpec = null;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await loadApiSpec();
+                renderApiDocumentation();
+                hideLoading();
+                initializeNavigation();
+            } catch (error) {
+                showError('Failed to load API specification: ' + error.message);
+            }
+        });
+
+        // Load AsyncAPI specification
+        async function loadApiSpec() {
+            const response = await fetch(wsDocsConfig.specUrl || 'asyncapi.json', { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error(`${response.status} ${response.statusText}`);
+            }
+            apiSpec = await response.json();
+
+            const wsUrlInput = document.getElementById('ws-url');
+            if (wsUrlInput && !wsUrlInput.value) {
+                wsUrlInput.value = wsDocsConfig.websocketUrl || '';
+            }
+            const downloadLink = document.getElementById('header-download-yaml');
+            if (downloadLink && wsDocsConfig.yamlUrl) {
+                downloadLink.href = wsDocsConfig.yamlUrl;
+            }
+        }
+
+        // ---- Schema resolution utilities ----
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function schemaNameFromRef(ref) {
+            return ref.split('/').pop().replace(/~1/g, '/').replace(/~0/g, '~');
+        }
+
+        // Returns a copy with $ref replaced by components.schemas entries. Circular references are cut with an empty object.
+        function resolveSchema(schema, seen = new Set()) {
+            if (!schema || typeof schema !== 'object') return schema;
+            if (schema.$ref) {
+                const name = schemaNameFromRef(schema.$ref);
+                if (seen.has(name)) return { type: 'object', title: name, properties: {}, circular: true };
+                const target = apiSpec.components && apiSpec.components.schemas ? apiSpec.components.schemas[name] : null;
+                if (!target) return { type: 'object', title: name };
+                const next = new Set(seen); next.add(name);
+                return { title: name, ...resolveSchema(target, next) };
+            }
+            const out = { ...schema };
+            if (schema.properties) {
+                out.properties = {};
+                Object.entries(schema.properties).forEach(([k, v]) => { out.properties[k] = resolveSchema(v, seen); });
+            }
+            if (schema.items) out.items = resolveSchema(schema.items, seen);
+            if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+                out.additionalProperties = resolveSchema(schema.additionalProperties, seen);
+            }
+            ['allOf', 'anyOf', 'oneOf'].forEach(key => {
+                if (Array.isArray(schema[key])) out[key] = schema[key].map(sub => resolveSchema(sub, seen));
+            });
+            return out;
+        }
+
+        function schemaTypeOf(schema) {
+            if (!schema) return 'unknown';
+            if (Array.isArray(schema.type)) return schema.type.find(t => t !== 'null') || schema.type[0];
+            if (schema.type) return schema.type;
+            if (schema.properties || schema.additionalProperties) return 'object';
+            if (schema.items) return 'array';
+            if (schema.enum) return 'string';
+            if (schema.allOf && schema.allOf.length) return schemaTypeOf(schema.allOf[0]);
+            if (schema.anyOf && schema.anyOf.length) return schemaTypeOf(schema.anyOf[0]);
+            if (schema.oneOf && schema.oneOf.length) return schemaTypeOf(schema.oneOf[0]);
+            return 'unknown';
+        }
+
+        // Builds an example value from a resolved schema. Handles objects, arrays, maps and scalars.
+        function exampleFor(schema, name = 'value', depth = 0) {
+            if (!schema || depth > 8) return null;
+            if (schema.const !== undefined) return schema.const;
+            if (schema.enum && schema.enum.length) return schema.enum[0];
+            if (schema.allOf && schema.allOf.length) {
+                return Object.assign({}, ...schema.allOf.map(sub => exampleFor(sub, name, depth + 1) || {}));
+            }
+            const type = schemaTypeOf(schema);
+            switch (type) {
+                case 'object': {
+                    const obj = {};
+                    if (schema.properties) {
+                        Object.entries(schema.properties).forEach(([k, v]) => { obj[k] = exampleFor(v, k, depth + 1); });
+                    } else if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+                        obj['key'] = exampleFor(schema.additionalProperties, 'key', depth + 1);
+                    }
+                    return obj;
+                }
+                case 'array':
+                    return schema.items ? [exampleFor(schema.items, name, depth + 1)] : [];
+                case 'integer': return 1;
+                case 'number': return 1.0;
+                case 'boolean': return true;
+                case 'string':
+                    if (schema.format === 'date-time') return '2025-01-01T12:00:00';
+                    if (schema.format === 'date') return '2025-01-01';
+                    if (schema.format === 'time') return '12:00:00';
+                    if (schema.format === 'uuid') return '123e4567-e89b-12d3-a456-426614174000';
+                    return `example ${name}`;
+                default:
+                    return null;
+            }
+        }
+
+        // AsyncAPI action is from the server's point of view (receive = server receives, send = server sends).
+        // The UI turns it into an instruction for the client: where the server receives = client 'send', where the server sends = client 'subscribe'.
+        function clientAction(operationSpec) {
+            if (!operationSpec) return 'send';
+            // The client subscribes to a destination the server sends to, or to a @SubscribeMapping where the server receives the SUBSCRIBE frame.
+            if (operationSpec.action === 'send' || operationSpec['x-stomp-frame'] === 'SUBSCRIBE') return 'subscribe';
+            return 'send';
+        }
+
+        function isDirectReplySubscription(operationSpec) {
+            return !!operationSpec && operationSpec['x-stomp-frame'] === 'SUBSCRIBE';
+        }
+
+        // List of messages the client receives when subscribed
+        function subscribedMessagesOf(operationSpec) {
+            if (isDirectReplySubscription(operationSpec)) {
+                return operationSpec.reply && operationSpec.reply.messages ? operationSpec.reply.messages : [];
+            }
+            return operationSpec.messages || [];
+        }
+
+        function clientActionLabel(action) {
+            return action === 'send' ? 'SEND TO' : 'SUBSCRIBE TO';
+        }
+
+        function messageSpecOf(messageName) {
+            if (!apiSpec.components || !apiSpec.components.messages) return null;
+            return apiSpec.components.messages[messageName] || null;
+        }
+
+        function messageDisplayName(messageName) {
+            const spec = messageSpecOf(messageName);
+            return spec && spec.title ? spec.title : formatTypeNameForDisplay(messageName);
+        }
+
+        // Render API documentation
+        function renderApiDocumentation() {
+            renderHeader();
+            renderNavigation();
+            renderOperations();
+            renderSchemas();
+            initializeWebSocketTest();
+        }
+
+        // Render header
+        function renderHeader() {
+            document.getElementById('api-title').textContent = apiSpec.info.title || 'WebSocket API';
+            document.getElementById('api-version').textContent = `v${apiSpec.info.version}`;
+            document.getElementById('asyncapi-version').textContent = `AsyncAPI ${apiSpec.asyncapi}`;
+            document.getElementById('api-description').textContent = apiSpec.info.description || '';
+        }
+
+        // Render navigation
+        function renderNavigation() {
+            const operationsNav = document.getElementById('operations-nav-list');
+            operationsNav.innerHTML = '';
+
+            // Operations navigation
+            if (apiSpec.operations) {
+                Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                    const operationId = 'operation-' + sanitizeId(operationPath);
+                    const action = clientAction(operationSpec);
+                    // Showing only the last segment would repeat {roomId}, so show the full destination with a direction label.
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="#${operationId}" title="${escapeHtml(clientActionLabel(action))} ${escapeHtml(operationPath)}">`
+                        + `<span class="nav-direction ${action}">${action === 'send' ? '↑' : '↓'}</span> ${escapeHtml(operationPath)}</a>`;
+                    operationsNav.appendChild(li);
+                });
+            }
+        }
+
+
+        // Render operations
+        function renderOperations() {
+            const container = document.getElementById('operations-container');
+            container.innerHTML = '';
+
+            if (!apiSpec.operations) return;
+
+            Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                const operationId = 'operation-' + sanitizeId(operationPath);
+                const operationCard = createOperationCard(operationId, operationPath, operationSpec);
+                container.appendChild(operationCard);
+            });
+        }
+
+
+
+        // Create operation card
+        function createOperationCard(operationId, operationPath, operationSpec) {
+            const div = document.createElement('div');
+            div.id = operationId;
+            div.className = 'operation-card';
+
+            const action = clientAction(operationSpec);
+            
+            // Request payload info (for send actions)
+            let requestPayloadHtml = '';
+            if (action === 'send') {
+                requestPayloadHtml += '<div class="payload-section"><h4>📤 Send</h4>';
+                
+                // Always show destination info
+                const destinationPath = getChannelPathFromRef(operationSpec.channel);
+                
+                if (operationSpec.messages && operationSpec.messages.length > 0) {
+                    // When a request payload exists
+                    operationSpec.messages.forEach(messageRef => {
+                        const messageName = getMessageNameFromRef(messageRef);
+                        const messageSchema = getMessageSchema(messageName);
+                        
+                        requestPayloadHtml += `
+                            <div class="payload-card">
+                                <div class="payload-header">
+                                    <strong>Destination:</strong> <code>${destinationPath}</code>
+                                    ${generateDestinationVariablesInfo(destinationPath)}
+                                </div>
+                                <div class="payload-content">
+                                    <h5>Payload Type: <code>${escapeHtml(messageDisplayName(messageName))}</code></h5>
+                                    <div class="schema-tabs">
+                                        <div class="tab-buttons">
+                                            <button class="tab-button active" data-tab="example">Example</button>
+                                            <button class="tab-button" data-tab="schema">Schema</button>
+                                        </div>
+                                        <div class="tab-content">
+                                            <div class="tab-panel active" data-panel="example">
+                                                <div class="schema-example">
+                                                    <pre><code>${messageSchema}</code></pre>
+                                                </div>
+                                            </div>
+                                            <div class="tab-panel" data-panel="schema">
+                                                <div class="schema-tree">
+                                                    ${generateSchemaTree(messageName)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    // When there is no request payload (empty message)
+                    requestPayloadHtml += `
+                        <div class="payload-card">
+                            <div class="payload-header">
+                                <strong>Destination:</strong> <code>${destinationPath}</code>
+                                ${generateDestinationVariablesInfo(destinationPath)}
+                            </div>
+                            <div class="payload-content">
+                                <p>This request sends an empty payload.</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                requestPayloadHtml += '</div>';
+            }
+
+            // Response payload info
+            let responsePayloadHtml = '';
+            
+            if (action === 'send' && operationSpec.reply) {
+                // SEND action: show Response when a reply exists
+                const replyChannelPath = getChannelPathFromRef(operationSpec.reply.channel);
+                responsePayloadHtml += '<div class="payload-section"><h4>📥 Then subscribe to receive</h4>';
+                
+                if (operationSpec.reply.messages && operationSpec.reply.messages.length > 0) {
+                    operationSpec.reply.messages.forEach(messageRef => {
+                        const messageName = getMessageNameFromRef(messageRef);
+                        const messageSchema = getMessageSchema(messageName);
+                        
+                        responsePayloadHtml += `
+                            <div class="payload-card">
+                                <div class="payload-header">
+                                    <strong>Subscribe to:</strong> <code>${replyChannelPath}</code>
+                                    ${generateDestinationVariablesInfo(replyChannelPath)}
+                                </div>
+                                <div class="payload-content">
+                                    <h5>Payload Type: <code>${escapeHtml(messageDisplayName(messageName))}</code></h5>
+                                    <div class="schema-tabs">
+                                        <div class="tab-buttons">
+                                            <button class="tab-button active" data-tab="example">Example</button>
+                                            <button class="tab-button" data-tab="schema">Schema</button>
+                                        </div>
+                                        <div class="tab-content">
+                                            <div class="tab-panel active" data-panel="example">
+                                                <div class="schema-example">
+                                                    <pre><code>${messageSchema}</code></pre>
+                                                </div>
+                                            </div>
+                                            <div class="tab-panel" data-panel="schema">
+                                                <div class="schema-tree">
+                                                    ${generateSchemaTree(messageName)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                responsePayloadHtml += '</div>';
+            } else if (action === 'subscribe' && subscribedMessagesOf(operationSpec).length > 0) {
+                // Message the client receives when subscribed
+                const channelPath = getChannelPathFromRef(operationSpec.channel);
+                responsePayloadHtml += '<div class="payload-section"><h4>📥 Subscribe to receive</h4>';
+                if (isDirectReplySubscription(operationSpec)) {
+                    responsePayloadHtml += '<p class="direct-reply-note">The reply is delivered once, directly to this subscriber (not via a broker topic).</p>';
+                }
+
+                subscribedMessagesOf(operationSpec).forEach(messageRef => {
+                    const messageName = getMessageNameFromRef(messageRef);
+                    const messageSchema = getMessageSchema(messageName);
+                    
+                    responsePayloadHtml += `
+                        <div class="payload-card">
+                            <div class="payload-header">
+                                <strong>Subscribe to:</strong> <code>${channelPath}</code>
+                                ${generateDestinationVariablesInfo(channelPath)}
+                            </div>
+                            <div class="payload-content">
+                                <h5>Payload Type: <code>${escapeHtml(messageDisplayName(messageName))}</code></h5>
+                                <div class="schema-tabs">
+                                    <div class="tab-buttons">
+                                        <button class="tab-button active" data-tab="example">Example</button>
+                                        <button class="tab-button" data-tab="schema">Schema</button>
+                                    </div>
+                                    <div class="tab-content">
+                                        <div class="tab-panel active" data-panel="example">
+                                            <div class="schema-example">
+                                                <pre><code>${messageSchema}</code></pre>
+                                            </div>
+                                        </div>
+                                        <div class="tab-panel" data-panel="schema">
+                                            <div class="schema-tree">
+                                                ${generateSchemaTree(messageName)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                responsePayloadHtml += '</div>';
+            }
+
+            div.innerHTML = `
+                <div class="operation-header collapsible-header ${action}-header" onclick="toggleOperation('${operationId}')">
+                    <div class="operation-header-content">
+                        <span class="operation-badge ${action}">${clientActionLabel(action)}</span>
+                        <h3>${escapeHtml(operationPath)}</h3>
+                    </div>
+                    <span class="operation-toggle-icon">▶</span>
+                </div>
+                <div class="operation-info collapsed">
+                    <div class="operation-description">
+                        <div class="operation-desc-content">
+                            <p><strong>Summary:</strong> ${escapeHtml(operationSpec.summary || 'No summary')}</p>
+                            <p><strong>Description:</strong> ${escapeHtml(operationSpec.description || 'No description')}</p>
+                            ${Array.isArray(operationSpec.tags) && operationSpec.tags.length ? `<p><strong>Tags:</strong> ${operationSpec.tags.map(t => `<span class="enum-badge">${escapeHtml(t.name || t)}</span>`).join(' ')}</p>` : ''}
+                        </div>
+                        <div class="operation-actions">
+                            <button class="btn btn-info btn-sm go-to-test-btn" data-operation-path="${operationPath}" data-action="${action}">
+                                🧪 Go to Test
+                            </button>
+                        </div>
+                    </div>
+                    ${requestPayloadHtml}
+                    ${responsePayloadHtml}
+                </div>
+            `;
+
+            return div;
+        }
+
+        // Render schemas
+        function renderSchemas() {
+            const container = document.getElementById('schemas-container');
+            container.innerHTML = '';
+
+            if (!apiSpec.components || !apiSpec.components.schemas) return;
+
+            Object.entries(apiSpec.components.schemas).forEach(([schemaName, schemaSpec]) => {
+                const schemaCard = createSchemaCard(schemaName, schemaSpec);
+                container.appendChild(schemaCard);
+            });
+        }
+
+        // Create schema card
+        function createSchemaCard(schemaName, schemaSpec) {
+            const div = document.createElement('div');
+            div.id = `schema-${sanitizeId(schemaName)}`;
+            div.className = 'schema-card';
+
+            // Generate schema example
+            const schemaExample = generateSchemaExample(schemaSpec);
+            const schemaTree = generateSchemaTreeForSchema(schemaSpec, schemaName);
+
+            div.innerHTML = `
+                <div class="schema-header collapsible-header" onclick="toggleSchemaCard('schema-${sanitizeId(schemaName)}')">
+                    <div class="schema-header-content">
+                        <h3>${schemaName}</h3>
+                        <span class="schema-type-badge object-type">DTO</span>
+                    </div>
+                    <span class="schema-toggle-icon">▶</span>
+                </div>
+                <div class="schema-content collapsed">
+                    <div class="schema-tabs">
+                        <div class="tab-buttons">
+                            <button class="tab-button active" data-tab="example">Example</button>
+                            <button class="tab-button" data-tab="schema">Schema</button>
+                        </div>
+                        <div class="tab-content">
+                            <div class="tab-panel active" data-panel="example">
+                                <div class="schema-example">
+                                    <pre><code>${schemaExample}</code></pre>
+                                </div>
+                            </div>
+                            <div class="tab-panel" data-panel="schema">
+                                <div class="schema-tree">
+                                    ${schemaTree}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return div;
+        }
+
+        // Create tree for schema
+        function generateSchemaTreeForSchema(schema, schemaName) {
+            if (!schema.properties) return '<p>No schema information</p>';
+            return generateSchemaTreeNode(schema, schemaName, 0);
+        }
+
+        // Message example JSON
+        function getMessageSchema(messageName) {
+            const messageSpec = messageSpecOf(messageName);
+            if (!messageSpec || !messageSpec.payload) return 'No schema information';
+            const resolved = resolveSchema(messageSpec.payload);
+            const example = exampleFor(resolved, messageName);
+            let json = JSON.stringify(example, null, 2);
+            if (json === undefined) return 'null';
+            if (resolved.properties) {
+                json = addEnumComments(json, resolved);
+            }
+            return escapeHtml(json);
+        }
+
+        // Message schema tree
+        function generateSchemaTree(messageName) {
+            const messageSpec = messageSpecOf(messageName);
+            if (!messageSpec || !messageSpec.payload) return '<p>No schema information</p>';
+            const resolved = resolveSchema(messageSpec.payload);
+            return generateRootSchemaNode(resolved, messageDisplayName(messageName));
+        }
+
+        // Render root schema (object, array, map, scalar)
+        function generateRootSchemaNode(schema, rootName) {
+            const type = schemaTypeOf(schema);
+            if (type === 'object' && schema.properties) {
+                return generateSchemaTreeNode(schema, schema.title || rootName, 0);
+            }
+            if (type === 'array') {
+                const items = schema.items || {};
+                const itemType = schemaTypeOf(items);
+                const itemLabel = items.title || itemType;
+                const inner = (itemType === 'object' && items.properties)
+                    ? generateSchemaTreeNode(items, itemLabel, 1)
+                    : (itemType === 'array' || (itemType === 'object' && items.additionalProperties))
+                        ? generateRootSchemaNode(items, itemLabel)
+                        : `<div class="schema-field-info"><span class="schema-type-badge ${getTypeClass(itemType)}">${escapeHtml(itemType)}</span>${items.enum ? generateEnumBadges(items.enum) : ''}</div>`;
+                return `
+                    <div class="schema-node" data-depth="0">
+                        <div class="schema-node-header root-node">
+                            <span class="schema-node-type array-type">${escapeHtml(rootName)}</span>
+                            <span class="schema-type-badge">array</span>
+                        </div>
+                        <div class="schema-node-children">
+                            <div class="schema-field">
+                                <div class="schema-node-header">
+                                    <span class="schema-field-name">items</span>
+                                    <span class="schema-type-badge ${getTypeClass(itemType)}">${escapeHtml(itemLabel)}</span>
+                                </div>
+                                <div class="schema-node-children">${inner}</div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+            if (type === 'object' && schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+                const value = schema.additionalProperties;
+                const valueType = schemaTypeOf(value);
+                const inner = (valueType === 'object' && value.properties)
+                    ? generateSchemaTreeNode(value, value.title || valueType, 1)
+                    : (valueType === 'array' || (valueType === 'object' && value.additionalProperties))
+                        ? generateRootSchemaNode(value, value.title || valueType)
+                        : `<div class="schema-field-info"><span class="schema-type-badge ${getTypeClass(valueType)}">${escapeHtml(valueType)}</span></div>`;
+                return `
+                    <div class="schema-node" data-depth="0">
+                        <div class="schema-node-header root-node">
+                            <span class="schema-node-type object-type">${escapeHtml(rootName)}</span>
+                            <span class="schema-type-badge">map</span>
+                        </div>
+                        <div class="schema-node-children">
+                            <div class="schema-field">
+                                <div class="schema-node-header">
+                                    <span class="schema-field-name">[key: string]</span>
+                                    <span class="schema-type-badge ${getTypeClass(valueType)}">${escapeHtml(value.title || valueType)}</span>
+                                </div>
+                                <div class="schema-node-children">${inner}</div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+            return `
+                <div class="schema-node" data-depth="0">
+                    <div class="schema-node-header root-node">
+                        <span class="schema-node-type ${getTypeClass(type)}">${escapeHtml(rootName)}</span>
+                        <span class="schema-type-badge ${getTypeClass(type)}">${escapeHtml(type)}</span>
+                        ${schema.format ? `<span class="optional-badge">${escapeHtml(schema.format)}</span>` : ''}
+                        ${schema.enum ? generateEnumBadges(schema.enum) : ''}
+                    </div>
+                </div>`;
+        }
+
+        // Create schema tree node
+        function generateSchemaTreeNode(schema, nodeName, depth) {
+            if (!schema.properties) return '';
+            
+            const indent = '  '.repeat(depth);
+            let html = `<div class="schema-node" data-depth="${depth}">`;
+            
+            if (depth === 0) {
+                html += `<div class="schema-node-header root-node">
+                    <span class="schema-node-type object-type">${nodeName}</span>
+                    <span class="schema-type-badge">object</span>
+                </div>`;
+            }
+            
+            html += '<div class="schema-node-children">';
+            
+            Object.entries(schema.properties).forEach(([propName, propSpec]) => {
+                const isRequired = schema.required && schema.required.includes(propName);
+                const fieldId = `field-${nodeName}-${propName}-${depth}`;
+                
+                html += `<div class="schema-field" data-field-id="${fieldId}">`;
+                
+                const propType = schemaTypeOf(propSpec);
+                if (propType === 'object' && propSpec.properties) {
+                    // Nested object
+                    html += `<div class="schema-node-header collapsible" data-field-id="${fieldId}">
+                        <span class="toggle-icon">▶</span>
+                        <span class="schema-field-name">${propName}</span>
+                        ${isRequired ? '<span class="required-badge">required</span>' : '<span class="optional-badge">optional</span>'}
+                        <span class="schema-type-badge object-type">object</span>
+                    </div>
+                    <div class="schema-node-children collapsed" id="${fieldId}-children">
+                        ${generateSchemaTreeNode(propSpec, `${nodeName}_${propName}`, depth + 1)}
+                    </div>`;
+                } else if (propType === 'array') {
+                    // Array
+                    html += `<div class="schema-node-header">
+                        <span class="schema-field-name">${propName}</span>
+                        ${isRequired ? '<span class="required-badge">required</span>' : '<span class="optional-badge">optional</span>'}
+                        <span class="schema-type-badge array-type">array</span>
+                    </div>`;
+                    
+                    if (propSpec.items && schemaTypeOf(propSpec.items) === 'object' && propSpec.items.properties) {
+                        html += `<div class="schema-array-items">
+                            <div class="schema-node-header collapsible" data-field-id="${fieldId}-items">
+                                <span class="toggle-icon">▶</span>
+                                <span class="schema-field-name">items</span>
+                                <span class="schema-type-badge object-type">object</span>
+                            </div>
+                            <div class="schema-node-children collapsed" id="${fieldId}-items-children">
+                                ${generateSchemaTreeNode(propSpec.items, `${nodeName}_${propName}_item`, depth + 1)}
+                            </div>
+                        </div>`;
+                    } else if (propSpec.items) {
+                        html += `<div class="schema-array-items">
+                            <div class="schema-field-info">
+                                <span class="schema-field-name">items</span>
+                                <span class="schema-type-badge">${escapeHtml(propSpec.items.title || schemaTypeOf(propSpec.items))}</span>
+                                ${propSpec.items.enum ? `<span class="enum-values">${propSpec.items.enum.join(' | ')}</span>` : ''}
+                            </div>
+                        </div>`;
+                    }
+                } else if (propType === 'object' && propSpec.additionalProperties && typeof propSpec.additionalProperties === 'object') {
+                    // Map
+                    const valueType = schemaTypeOf(propSpec.additionalProperties);
+                    html += `<div class="schema-node-header">
+                        <span class="schema-field-name">${escapeHtml(propName)}</span>
+                        ${isRequired ? '<span class="required-badge">required</span>' : '<span class="optional-badge">optional</span>'}
+                        <span class="schema-type-badge object-type">map&lt;string, ${escapeHtml(propSpec.additionalProperties.title || valueType)}&gt;</span>
+                    </div>`;
+                    if (valueType === 'object' && propSpec.additionalProperties.properties) {
+                        html += `<div class="schema-array-items">
+                            <div class="schema-node-header collapsible" data-field-id="${fieldId}-values">
+                                <span class="toggle-icon">▶</span>
+                                <span class="schema-field-name">values</span>
+                                <span class="schema-type-badge object-type">object</span>
+                            </div>
+                            <div class="schema-node-children collapsed" id="${fieldId}-values-children">
+                                ${generateSchemaTreeNode(propSpec.additionalProperties, `${nodeName}_${propName}_value`, depth + 1)}
+                            </div>
+                        </div>`;
+                    }
+                } else {
+                    // Primitive type
+                    const typeClass = getTypeClass(propType);
+                    html += `<div class="schema-node-header">
+                        <span class="schema-field-name">${escapeHtml(propName)}</span>
+                        ${isRequired ? '<span class="required-badge">required</span>' : '<span class="optional-badge">optional</span>'}
+                        <span class="schema-type-badge ${typeClass}">${escapeHtml(propType)}</span>
+                        ${propSpec.format ? `<span class="optional-badge">${escapeHtml(propSpec.format)}</span>` : ''}
+                        ${propSpec.enum ? generateEnumBadges(propSpec.enum) : ''}
+                    </div>`;
+                }
+                
+                html += '</div>';
+            });
+            
+            html += '</div></div>';
+            return html;
+        }
+
+        // Generate schema example
+        function generateSchemaExample(schema) {
+            if (!schema.properties) return '{}';
+            
+            const example = generateExampleObject(schema);
+            let jsonString = JSON.stringify(example, null, 2);
+            
+            // Add comments for enum values
+            jsonString = addEnumComments(jsonString, schema);
+            return jsonString;
+        }
+
+        // Add enum comments
+        function addEnumComments(jsonString, schema) {
+            if (!schema.properties) return jsonString;
+            
+            Object.entries(schema.properties).forEach(([propName, propSpec]) => {
+                if (schemaTypeOf(propSpec) === 'string' && propSpec.enum && propSpec.enum.length > 1) {
+                    // Add comments to string fields that have enum values
+                    const currentValue = propSpec.enum[0];
+                    const enumComment = ` // ${propSpec.enum.join(' | ')}`;
+                    const regex = new RegExp(`"${propName}":\\s*"${currentValue}"`, 'g');
+                    jsonString = jsonString.replace(regex, `"${propName}": "${currentValue}"${enumComment}`);
+                } else if (schemaTypeOf(propSpec) === 'object' && propSpec.properties) {
+                    // Process nested objects recursively as well
+                    jsonString = addEnumComments(jsonString, propSpec);
+                }
+            });
+            
+            return jsonString;
+        }
+
+        // Create example object (nested objects handled recursively)
+        function generateExampleObject(schema) {
+            if (!schema.properties) return {};
+            
+            const example = {};
+            Object.entries(schema.properties).forEach(([propName, propSpec]) => {
+                if (propSpec.type === 'string') {
+                    if (propSpec.enum) {
+                        example[propName] = propSpec.enum[0];
+                    } else if (propSpec.const) {
+                        example[propName] = propSpec.const;
+                    } else {
+                        example[propName] = `example ${propName}`;
+                    }
+                } else if (propSpec.type === 'integer') {
+                    example[propName] = 1;
+                } else if (propSpec.type === 'number') {
+                    example[propName] = 1.0;
+                } else if (propSpec.type === 'boolean') {
+                    example[propName] = true;
+                } else if (propSpec.type === 'array') {
+                    if (propSpec.items) {
+                        if (propSpec.items.type === 'object' && propSpec.items.properties) {
+                            // Object inside an array
+                            example[propName] = [generateExampleObject(propSpec.items)];
+                        } else if (propSpec.items.type === 'string') {
+                            if (propSpec.items.enum) {
+                                example[propName] = [propSpec.items.enum[0]];
+                            } else if (propSpec.items.const) {
+                                example[propName] = [propSpec.items.const];
+                            } else {
+                                example[propName] = [`example ${propName} item`];
+                            }
+                        } else {
+                            example[propName] = [getDefaultValueForType(propSpec.items.type)];
+                        }
+                    } else {
+                        example[propName] = [];
+                    }
+                } else if (propSpec.type === 'object' && propSpec.properties) {
+                    // Create nested objects recursively
+                    example[propName] = generateExampleObject(propSpec);
+                } else {
+                    example[propName] = getDefaultValueForType(propSpec.type);
+                }
+            });
+
+            return example;
+        }
+
+        // Return default value by type
+        function getDefaultValueForType(type) {
+            switch (type) {
+                case 'string': return 'example string';
+                case 'integer': return 1;
+                case 'number': return 1.0;
+                case 'boolean': return true;
+                case 'array': return [];
+                case 'object': return {};
+                default: return null;
+            }
+        }
+
+        // Return CSS class by type
+        function getTypeClass(type) {
+            switch (type) {
+                case 'string': return 'string-type';
+                case 'integer': return 'integer-type';
+                case 'number': return 'number-type';
+                case 'boolean': return 'boolean-type';
+                case 'array': return 'array-type';
+                case 'object': return 'object-type';
+                default: return '';
+            }
+        }
+
+        // Render ENUM values as individual badges
+        function generateEnumBadges(enumValues) {
+            return enumValues.map(value =>
+                `<span class="enum-badge">${escapeHtml(value)}</span>`
+            ).join('');
+        }
+
+        // Create destination variables info
+        function generateDestinationVariablesInfo(destinationPath) {
+            if (!destinationPath) return '';
+            
+            // Find {variableName} patterns
+            const variables = destinationPath.match(/{([^}]+)}/g);
+            
+            if (!variables || variables.length === 0) return '';
+            
+            let variablesInfo = '<div class="destination-variables-info">';
+            variablesInfo += '<div class="variables-label">Path Variables:</div>';
+            variablesInfo += '<div class="variables-list">';
+            
+            variables.forEach(variable => {
+                const varName = variable.slice(1, -1); // strip {}
+                const varDescription = getVariableDescription(varName);
+                
+                variablesInfo += `
+                    <div class="variable-item">
+                        <span class="variable-name">${varName}</span>
+                        <span class="variable-desc">${varDescription}</span>
+                    </div>
+                `;
+            });
+            
+            variablesInfo += '</div></div>';
+            return variablesInfo;
+        }
+
+        // Create description per variable
+        function getVariableDescription(varName) {
+            const descriptions = {
+                'joinCode': 'Room join code',
+                'roomId': 'Room identifier',
+                'userId': 'User identifier',
+                'playerId': 'Player identifier',
+                'gameId': 'Game identifier',
+                'sessionId': 'Session identifier',
+                'id': 'Resource identifier',
+                'code': 'Access code',
+                'token': 'Authentication token'
+            };
+            
+            return descriptions[varName] || `${varName} parameter`;
+        }
+
+        // Utility functions
+        function sanitizeId(path) {
+            return path.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        }
+
+        // Convert to display type name (fallback when there is no title): List_User -> List<User>
+        function formatTypeNameForDisplay(typeName) {
+            if (typeName && typeName.includes('_')) {
+                const parts = typeName.split('_');
+                return parts[0] + '<' + parts.slice(1).join(', ') + '>';
+            }
+            return typeName;
+        }
+
+        function getChannelDisplayName(channelPath) {
+            return channelPath.split('/').pop().replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function getOperationDisplayName(operationPath) {
+            return operationPath.split('/').pop().replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function getMessageNameFromRef(messageRef) {
+            if (typeof messageRef === 'string') return messageRef;
+            if (messageRef.$ref) return schemaNameFromRef(messageRef.$ref);
+            return 'Unknown';
+        }
+
+        function getChannelPathFromRef(channelRef) {
+            if (typeof channelRef === 'string') return channelRef;
+            if (channelRef.$ref) {
+                // #/channels/~1topic~1topic~1room~1{joinCode} form: extract the channel path
+                // #/channels/~1topic~1room~1{roomId}/messages/Foo form: extract only the channel key
+                const token = channelRef.$ref.replace('#/channels/', '').split('/')[0];
+                return token.replace(/~1/g, '/').replace(/~0/g, '~');
+            }
+            return 'Unknown';
+        }
+
+        // UI state management
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+
+        // Toggle operation card
+        function toggleOperation(operationId) {
+            const content = document.querySelector(`#${operationId} .operation-info`);
+            const toggleIcon = document.querySelector(`#${operationId} .operation-toggle-icon`);
+            
+            if (content && toggleIcon) {
+                if (content.classList.contains('collapsed')) {
+                    content.classList.remove('collapsed');
+                    toggleIcon.textContent = '▼';
+                } else {
+                    content.classList.add('collapsed');
+                    toggleIcon.textContent = '▶';
+                }
+            }
+        }
+
+        // Toggle schema card
+        function toggleSchemaCard(schemaId) {
+            const content = document.querySelector(`#${schemaId} .schema-content`);
+            const toggleIcon = document.querySelector(`#${schemaId} .schema-toggle-icon`);
+            
+            if (content && toggleIcon) {
+                if (content.classList.contains('collapsed')) {
+                    content.classList.remove('collapsed');
+                    toggleIcon.textContent = '▼';
+                } else {
+                    content.classList.add('collapsed');
+                    toggleIcon.textContent = '▶';
+                }
+            }
+        }
+
+        // Tab switching and schema node toggling (using event delegation)
+        function initializeTabs() {
+            document.addEventListener('click', function(e) {
+                // Handle tab button click
+                if (e.target.classList.contains('tab-button')) {
+                    const tab = e.target.dataset.tab;
+                    const tabContainer = e.target.closest('.schema-tabs');
+                    
+                    // Activate tab button
+                    tabContainer.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Show tab panel
+                    tabContainer.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+                    tabContainer.querySelector(`[data-panel="${tab}"]`).classList.add('active');
+                }
+                
+                // Handle schema node toggle click (event delegation)
+                if (e.target.closest('.collapsible')) {
+                    const header = e.target.closest('.collapsible');
+                    const fieldId = header.getAttribute('data-field-id');
+                    if (fieldId) {
+                        toggleSchemaNodeByElement(header);
+                    }
+                }
+            });
+        }
+
+        // Element-based schema node toggle
+        function toggleSchemaNodeByElement(headerElement) {
+            const fieldId = headerElement.getAttribute('data-field-id');
+            const toggleIcon = headerElement.querySelector('.toggle-icon');
+            
+            // Find the children right after the clicked header
+            let targetChildren = null;
+            
+            // Find schema-node-children in the header's next sibling element
+            let nextElement = headerElement.nextElementSibling;
+            while (nextElement) {
+                if (nextElement.classList.contains('schema-node-children')) {
+                    targetChildren = nextElement;
+                    break;
+                }
+                nextElement = nextElement.nextElementSibling;
+            }
+            
+            // If not found, retry by ID
+            if (!targetChildren) {
+                targetChildren = document.getElementById(`${fieldId}-items-children`) || 
+                                document.getElementById(`${fieldId}-children`);
+            }
+
+            if (targetChildren && toggleIcon) {
+                if (targetChildren.classList.contains('collapsed')) {
+                    targetChildren.classList.remove('collapsed');
+                    toggleIcon.textContent = '▼';
+                } else {
+                    targetChildren.classList.add('collapsed');
+                    toggleIcon.textContent = '▶';
+                }
+            }
+        }
+
+        // Initialize navigation
+        function initializeNavigation() {
+            // Initialize tabs
+            initializeTabs();
+            
+            // Collapse All button event
+            document.getElementById('header-collapse-all-btn').addEventListener('click', collapseAllOperations);
+            
+            // Go to Test button events (event delegation)
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('go-to-test-btn')) {
+                    const operationPath = e.target.getAttribute('data-operation-path');
+                    const action = e.target.getAttribute('data-action');
+                    goToTestFromOperation(operationPath, action);
+                }
+            });
+            
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+
+            // Highlight current section in navigation
+            window.addEventListener('scroll', () => {
+                let current = '';
+                document.querySelectorAll('section[id], [id^="channel-"], [id^="operation-"]').forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (window.pageYOffset >= sectionTop - 60) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                document.querySelectorAll('.nav-list a').forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        }
+
+        // WebSocket Test feature
+        let stompClient = null;
+        let subscriptions = [];
+
+        function initializeWebSocketTest() {
+            populateDestinations();
+            populateSubscriptionTopics();
+            initializeWebSocketEvents();
+        }
+
+        function populateDestinations() {
+            const destinationSelect = document.getElementById('message-destination');
+            destinationSelect.innerHTML = '<option value="">Select destination...</option>';
+            
+            if (apiSpec.operations) {
+                Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                    if (clientAction(operationSpec) === 'send') {
+                        const channelPath = getChannelPathFromRef(operationSpec.channel);
+                        const option = document.createElement('option');
+                        option.value = channelPath;
+                        // Show only channelPath when duplicate or similar, otherwise show operationPath
+                        if (operationPath === channelPath || channelPath.includes(operationPath)) {
+                            option.textContent = channelPath;
+                        } else {
+                            option.textContent = `${operationPath} (${channelPath})`;
+                        }
+                        destinationSelect.appendChild(option);
+                    }
+                });
+            }
+        }
+
+        function populateSubscriptionTopics() {
+            const topicSelect = document.getElementById('subscription-topic');
+            topicSelect.innerHTML = '<option value="">Select topic...</option>';
+            
+            const topics = new Set(); // dedupe
+            
+            if (apiSpec.operations) {
+                Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                    // Channel of the RECEIVE operation
+                    if (clientAction(operationSpec) === 'subscribe') {
+                        const topicPath = getChannelPathFromRef(operationSpec.channel);
+                        topics.add(topicPath);
+                    }
+                    
+                    // Reply channel of the SEND operation
+                    if (clientAction(operationSpec) === 'send' && operationSpec.reply) {
+                        const replyPath = getChannelPathFromRef(operationSpec.reply.channel);
+                        topics.add(replyPath);
+                    }
+                });
+            }
+            
+            topics.forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic;
+                option.textContent = topic;
+                topicSelect.appendChild(option);
+            });
+        }
+
+        function initializeWebSocketEvents() {
+            document.getElementById('connect-btn').addEventListener('click', connectWebSocket);
+            document.getElementById('disconnect-btn').addEventListener('click', disconnectWebSocket);
+            document.getElementById('send-message-btn').addEventListener('click', sendMessage);
+            
+            // Subscription-related events
+            document.getElementById('subscribe-btn').addEventListener('click', manualSubscribe);
+            document.getElementById('unsubscribe-all-btn').addEventListener('click', unsubscribeAll);
+            
+            // Clear-log event
+            document.getElementById('clear-connection-log-btn').addEventListener('click', clearConnectionLog);
+            document.getElementById('clear-subscription-log-btn').addEventListener('click', clearSubscriptionLog);
+            
+            // Navigate-to-operation event
+            document.getElementById('go-to-operation-btn').addEventListener('click', goToOperation);
+            document.getElementById('go-to-topic-btn').addEventListener('click', goToTopic);
+            
+            // Load example message when a destination is selected
+            document.getElementById('message-destination').addEventListener('change', function(e) {
+                const selectedPath = e.target.value;
+                createDestinationVariableInputs(selectedPath);
+                loadExampleMessage(selectedPath);
+                updateFinalDestination();
+                updateGoToOperationButton();
+            });
+            
+            // Create variable input fields when a subscription topic is selected
+            document.getElementById('subscription-topic').addEventListener('change', function(e) {
+                const selectedTopic = e.target.value;
+                createSubscriptionVariableInputs(selectedTopic);
+                updateFinalSubscription();
+                updateGoToTopicButton();
+            });
+        }
+
+        function connectWebSocket() {
+            const url = document.getElementById('ws-url').value.trim();
+            if (!url) {
+                addLogEntry('error', 'Please enter a WebSocket URL');
+                return;
+            }
+
+            try {
+                addLogEntry('info', `Connecting to ${url}...`);
+                
+                // Connect SockJS and STOMP
+                const socket = new SockJS(url);
+                stompClient = StompJs.Stomp.over(socket);
+                
+                // STOMP connect
+                stompClient.connect({}, function(frame) {
+                    addLogEntry('success', `STOMP connected to ${url}`);
+                    addLogEntry('info', `Session: ${frame.headers['session']}`);
+                    updateConnectionStatus(true);
+                    
+                }, function(error) {
+                    addLogEntry('error', `STOMP connection failed: ${error}`);
+                    updateConnectionStatus(false);
+                });
+
+                // Monitor WebSocket connection state
+                socket.onopen = function() {
+                    addLogEntry('info', 'SockJS connection opened');
+                };
+
+                socket.onclose = function(event) {
+                    addLogEntry('info', `SockJS connection closed (code: ${event.code})`);
+                    updateConnectionStatus(false);
+                    clearSubscriptions();
+                };
+
+                socket.onerror = function(error) {
+                    addLogEntry('error', `SockJS error: ${error}`);
+                };
+                
+            } catch (error) {
+                addLogEntry('error', `Connection failed: ${error.message}`);
+                updateConnectionStatus(false);
+            }
+        }
+
+        function disconnectWebSocket() {
+            if (stompClient && stompClient.connected) {
+                // Unsubscribe from everything
+                clearSubscriptions();
+                
+                // Disconnect STOMP
+                stompClient.disconnect(function() {
+                    addLogEntry('info', 'STOMP disconnected');
+                    updateConnectionStatus(false);
+                });
+            } else {
+                updateConnectionStatus(false);
+                addLogEntry('info', 'Already disconnected');
+            }
+        }
+
+        function createSubscriptionVariableInputs(topicPath) {
+            const variablesContainer = document.getElementById('subscription-variables');
+            variablesContainer.innerHTML = '';
+
+            if (!topicPath) return;
+
+            // Find {variableName} patterns and create input fields
+            const variables = topicPath.match(/{([^}]+)}/g);
+            
+            if (variables && variables.length > 0) {
+                variables.forEach(variable => {
+                    const varName = variable.slice(1, -1); // strip {}
+                    
+                    const formGroup = document.createElement('div');
+                    formGroup.className = 'form-group';
+                    
+                    formGroup.innerHTML = `
+                        <label for="sub-var-${varName}">${varName}:</label>
+                        <input type="text" id="sub-var-${varName}" data-variable="${varName}" 
+                               placeholder="Enter ${varName}..." class="subscription-variable">
+                    `;
+                    
+                    variablesContainer.appendChild(formGroup);
+                });
+
+                // Update the final subscription on variable input
+                variablesContainer.addEventListener('input', updateFinalSubscription);
+            }
+        }
+
+        function updateFinalSubscription() {
+            const baseTopic = document.getElementById('subscription-topic').value;
+            const finalSubscriptionInput = document.getElementById('final-subscription');
+            const subscribeBtn = document.getElementById('subscribe-btn');
+            
+            if (!baseTopic) {
+                finalSubscriptionInput.value = '';
+                subscribeBtn.disabled = true;
+                return;
+            }
+
+            let finalTopic = baseTopic;
+            
+            // Substitute with the values of all variable input fields
+            const variableInputs = document.querySelectorAll('.subscription-variable');
+            variableInputs.forEach(input => {
+                const varName = input.dataset.variable;
+                const varValue = input.value.trim();
+                if (varValue) {
+                    finalTopic = finalTopic.replace(`{${varName}}`, varValue);
+                }
+            });
+            
+            finalSubscriptionInput.value = finalTopic;
+            
+            // Check that all variables are filled
+            const hasUnfilledVariables = finalTopic.includes('{') && finalTopic.includes('}');
+            subscribeBtn.disabled = !stompClient || !stompClient.connected || hasUnfilledVariables;
+        }
+
+        function manualSubscribe() {
+            if (!stompClient || !stompClient.connected) {
+                addLogEntry('error', 'Not connected to STOMP server');
+                return;
+            }
+
+            const finalTopic = document.getElementById('final-subscription').value;
+            
+            if (!finalTopic) {
+                addLogEntry('error', 'Please select a topic');
+                return;
+            }
+
+            // Check that no variables remain unsubstituted
+            if (finalTopic.includes('{') && finalTopic.includes('}')) {
+                addLogEntry('error', 'Please fill in all topic variables');
+                return;
+            }
+
+            // Check whether already subscribed
+            const existingSubscription = subscriptions.find(sub => sub.destination === finalTopic);
+            if (existingSubscription) {
+                addLogEntry('error', `Already subscribed to ${finalTopic}`);
+                return;
+            }
+
+            subscribeToTopic(finalTopic);
+            updateSubscriptionsList();
+        }
+
+        function unsubscribeAll() {
+            clearSubscriptions();
+            updateSubscriptionsList();
+            addLogEntry('info', 'All subscriptions cleared');
+            
+            // Also reset the subscription log
+            const subscriptionLogContainer = document.getElementById('subscription-log');
+            subscriptionLogContainer.innerHTML = `
+                <div class="log-entry info">
+                    <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="message">No active subscriptions</span>
+                </div>
+            `;
+        }
+
+        function subscribeToTopic(topicPath) {
+            if (!stompClient || !stompClient.connected) return;
+            
+            // Check whether already subscribed
+            const existingSubscription = subscriptions.find(sub => sub.destination === topicPath);
+            if (existingSubscription) return;
+            
+            try {
+                const subscription = stompClient.subscribe(topicPath, function(message) {
+                    addSubscriptionLogEntry('received', topicPath, message.body);
+                });
+                
+                subscriptions.push({
+                    destination: topicPath,
+                    subscription: subscription
+                });
+                
+                addLogEntry('info', `Subscribed to ${topicPath}`);
+                
+                // Reset the subscription log on first subscription
+                if (subscriptions.length === 1) {
+                    clearSubscriptionLog();
+                }
+            } catch (error) {
+                addLogEntry('error', `Failed to subscribe to ${topicPath}: ${error.message}`);
+            }
+        }
+
+        function updateSubscriptionsList() {
+            const subscriptionsList = document.getElementById('subscriptions-list');
+            
+            if (subscriptions.length === 0) {
+                subscriptionsList.innerHTML = '<div class="no-subscriptions">No active subscriptions</div>';
+                return;
+            }
+            
+            subscriptionsList.innerHTML = '';
+            subscriptions.forEach(sub => {
+                const subscriptionItem = document.createElement('div');
+                subscriptionItem.className = 'subscription-item';
+                
+                subscriptionItem.innerHTML = `
+                    <span class="subscription-topic">${sub.destination}</span>
+                    <button class="unsubscribe-btn" onclick="unsubscribeFromTopic('${sub.destination}')">×</button>
+                `;
+                
+                subscriptionsList.appendChild(subscriptionItem);
+            });
+        }
+
+        function unsubscribeFromTopic(topicPath) {
+            const subscriptionIndex = subscriptions.findIndex(sub => sub.destination === topicPath);
+            if (subscriptionIndex === -1) return;
+            
+            try {
+                subscriptions[subscriptionIndex].subscription.unsubscribe();
+                subscriptions.splice(subscriptionIndex, 1);
+                updateSubscriptionsList();
+                addLogEntry('info', `Unsubscribed from ${topicPath}`);
+            } catch (error) {
+                addLogEntry('error', `Failed to unsubscribe from ${topicPath}: ${error.message}`);
+            }
+        }
+
+        function clearSubscriptions() {
+            subscriptions.forEach(sub => {
+                try {
+                    sub.subscription.unsubscribe();
+                } catch (error) {
+                    console.error('Error unsubscribing:', error);
+                }
+            });
+            subscriptions = [];
+        }
+
+        function createDestinationVariableInputs(destinationPath) {
+            const variablesContainer = document.getElementById('destination-variables');
+            variablesContainer.innerHTML = '';
+
+            if (!destinationPath) return;
+
+            // Find {variableName} patterns and create input fields
+            const variables = destinationPath.match(/{([^}]+)}/g);
+            
+            if (variables && variables.length > 0) {
+                variables.forEach(variable => {
+                    const varName = variable.slice(1, -1); // strip {}
+                    
+                    const formGroup = document.createElement('div');
+                    formGroup.className = 'form-group';
+                    
+                    formGroup.innerHTML = `
+                        <label for="var-${varName}">${varName}:</label>
+                        <input type="text" id="var-${varName}" data-variable="${varName}" 
+                               placeholder="Enter ${varName}..." class="destination-variable">
+                    `;
+                    
+                    variablesContainer.appendChild(formGroup);
+                });
+
+                // Update the final destination on variable input
+                variablesContainer.addEventListener('input', updateFinalDestination);
+            }
+        }
+
+        function updateFinalDestination() {
+            const baseDestination = document.getElementById('message-destination').value;
+            const finalDestinationInput = document.getElementById('final-destination');
+            
+            if (!baseDestination) {
+                finalDestinationInput.value = '';
+                return;
+            }
+
+            let finalDestination = baseDestination;
+            
+            // Substitute with the values of all variable input fields
+            const variableInputs = document.querySelectorAll('.destination-variable');
+            variableInputs.forEach(input => {
+                const varName = input.dataset.variable;
+                const varValue = input.value.trim();
+                if (varValue) {
+                    finalDestination = finalDestination.replace(`{${varName}}`, varValue);
+                }
+            });
+            
+            finalDestinationInput.value = finalDestination;
+        }
+
+        function sendMessage() {
+            if (!stompClient || !stompClient.connected) {
+                addLogEntry('error', 'Not connected to STOMP server');
+                return;
+            }
+
+            const finalDestination = document.getElementById('final-destination').value;
+            const payload = document.getElementById('message-payload').value.trim();
+
+            if (!finalDestination) {
+                addLogEntry('error', 'Please select a destination');
+                return;
+            }
+
+            // Check that no variables remain unsubstituted
+            if (finalDestination.includes('{') && finalDestination.includes('}')) {
+                addLogEntry('error', 'Please fill in all destination variables');
+                return;
+            }
+
+            try {
+                let messageBody = {};
+                if (payload) {
+                    // JSON validation
+                    messageBody = JSON.parse(payload);
+                }
+
+                // STOMP send
+                stompClient.send(finalDestination, {
+                    'content-type': 'application/json'
+                }, JSON.stringify(messageBody));
+                
+                addLogEntry('sent', `Sent to ${finalDestination}: ${JSON.stringify(messageBody)}`);
+                
+            } catch (error) {
+                if (error.name === 'SyntaxError') {
+                    addLogEntry('error', `Invalid JSON payload: ${error.message}`);
+                } else {
+                    addLogEntry('error', `Failed to send message: ${error.message}`);
+                }
+            }
+        }
+
+        function loadExampleMessage(destination) {
+            if (!destination || !apiSpec.operations) return;
+            
+            // Find the operation matching this destination
+            Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                if (clientAction(operationSpec) === 'send' && getChannelPathFromRef(operationSpec.channel) === destination) {
+                    if (operationSpec.messages && operationSpec.messages.length > 0) {
+                        const messageName = getMessageNameFromRef(operationSpec.messages[0]);
+                        const exampleJson = getMessageSchema(messageName);
+                        document.getElementById('message-payload').value = exampleJson;
+                    } else {
+                        document.getElementById('message-payload').value = '{}';
+                    }
+                }
+            });
+        }
+
+        function updateConnectionStatus(isConnected) {
+            const statusElement = document.getElementById('connection-status');
+            const connectBtn = document.getElementById('connect-btn');
+            const disconnectBtn = document.getElementById('disconnect-btn');
+            const sendBtn = document.getElementById('send-message-btn');
+
+            if (isConnected && stompClient && stompClient.connected) {
+                statusElement.textContent = 'Connected (STOMP)';
+                statusElement.className = 'status-connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                sendBtn.disabled = false;
+            } else {
+                statusElement.textContent = 'Disconnected';
+                statusElement.className = 'status-disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                sendBtn.disabled = true;
+            }
+        }
+
+        function addLogEntry(type, message) {
+            const logContainer = document.getElementById('message-log');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `
+                <span class="timestamp">[${timestamp}]</span>
+                <span class="message">${message}</span>
+            `;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function addSubscriptionLogEntry(type, topic, message) {
+            const logContainer = document.getElementById('subscription-log');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            
+            // Pretty-print the JSON message
+            let formattedMessage = message;
+            try {
+                const jsonObj = JSON.parse(message);
+                formattedMessage = JSON.stringify(jsonObj, null, 2);
+            } catch (e) {
+                // If not JSON, show as is
+            }
+            
+            logEntry.innerHTML = `
+                <span class="timestamp">[${timestamp}]</span>
+                <div class="subscription-message">
+                    <div class="subscription-topic-header">${topic}</div>
+                    <pre class="subscription-content">${formattedMessage}</pre>
+                </div>
+            `;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearSubscriptionLog() {
+            const logContainer = document.getElementById('subscription-log');
+            logContainer.innerHTML = `
+                <div class="log-entry info">
+                    <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="message">Waiting for subscription messages...</span>
+                </div>
+            `;
+        }
+
+        function clearConnectionLog() {
+            const logContainer = document.getElementById('message-log');
+            logContainer.innerHTML = `
+                <div class="log-entry info">
+                    <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="message">Connection log cleared</span>
+                </div>
+            `;
+        }
+
+        function goToOperation() {
+            const selectedDestination = document.getElementById('message-destination').value;
+            if (!selectedDestination) return;
+            
+            // Find the operation matching this destination in the AsyncAPI spec
+            if (apiSpec.operations) {
+                Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                    if (clientAction(operationSpec) === 'send' && getChannelPathFromRef(operationSpec.channel) === selectedDestination) {
+                        const operationId = 'operation-' + sanitizeId(operationPath);
+                        const operationElement = document.getElementById(operationId);
+                        if (operationElement) {
+                            // Scroll to that operation
+                            operationElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            
+                            // Expand the operation if collapsed
+                            const operationInfo = operationElement.querySelector('.operation-info');
+                            const toggleIcon = operationElement.querySelector('.operation-toggle-icon');
+                            if (operationInfo && operationInfo.classList.contains('collapsed')) {
+                                operationInfo.classList.remove('collapsed');
+                                toggleIcon.textContent = '▼';
+                            }
+                            
+                            // Brief highlight effect
+                            operationElement.style.boxShadow = '0 0 20px rgba(52, 152, 219, 0.6)';
+                            setTimeout(() => {
+                                operationElement.style.boxShadow = '';
+                            }, 2000);
+                        }
+                    }
+                });
+            }
+        }
+
+        function goToTopic() {
+            const selectedTopic = document.getElementById('subscription-topic').value;
+            if (!selectedTopic) return;
+            
+            // Find the operation matching this topic in the AsyncAPI spec
+            if (apiSpec.operations) {
+                Object.entries(apiSpec.operations).forEach(([operationPath, operationSpec]) => {
+                    let topicPath = '';
+                    
+                    if (clientAction(operationSpec) === 'subscribe' && getChannelPathFromRef(operationSpec.channel) === selectedTopic) {
+                        topicPath = operationPath;
+                    } else if (clientAction(operationSpec) === 'send' && operationSpec.reply && getChannelPathFromRef(operationSpec.reply.channel) === selectedTopic) {
+                        topicPath = operationPath;
+                    }
+                    
+                    if (topicPath) {
+                        const operationId = 'operation-' + sanitizeId(topicPath);
+                        const operationElement = document.getElementById(operationId);
+                        if (operationElement) {
+                            // Scroll to that operation
+                            operationElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            
+                            // Expand the operation if collapsed
+                            const operationInfo = operationElement.querySelector('.operation-info');
+                            const toggleIcon = operationElement.querySelector('.operation-toggle-icon');
+                            if (operationInfo && operationInfo.classList.contains('collapsed')) {
+                                operationInfo.classList.remove('collapsed');
+                                toggleIcon.textContent = '▼';
+                            }
+                            
+                            // Brief highlight effect
+                            operationElement.style.boxShadow = '0 0 20px rgba(23, 162, 184, 0.6)';
+                            setTimeout(() => {
+                                operationElement.style.boxShadow = '';
+                            }, 2000);
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateGoToOperationButton() {
+            const goToOperationBtn = document.getElementById('go-to-operation-btn');
+            const selectedDestination = document.getElementById('message-destination').value;
+            goToOperationBtn.disabled = !selectedDestination;
+        }
+
+        function updateGoToTopicButton() {
+            const goToTopicBtn = document.getElementById('go-to-topic-btn');
+            const selectedTopic = document.getElementById('subscription-topic').value;
+            goToTopicBtn.disabled = !selectedTopic;
+        }
+
+        function collapseAllOperations() {
+            const allOperationInfos = document.querySelectorAll('.operation-info');
+            const allToggleIcons = document.querySelectorAll('.operation-toggle-icon');
+            
+            allOperationInfos.forEach(info => {
+                info.classList.add('collapsed');
+            });
+            
+            allToggleIcons.forEach(icon => {
+                icon.textContent = '▶';
+            });
+            
+            addLogEntry('info', 'All operations collapsed');
+        }
+
+        function goToTestFromOperation(operationPath, action) {
+            // Scroll to the WebSocket Test section
+            const testSection = document.getElementById('websocket-test');
+            testSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            if (action === 'send') {
+                // For a SEND operation, select that destination in the Send Message panel
+                if (apiSpec.operations && apiSpec.operations[operationPath]) {
+                    const operationSpec = apiSpec.operations[operationPath];
+                    const channelPath = getChannelPathFromRef(operationSpec.channel);
+                    
+                    const destinationSelect = document.getElementById('message-destination');
+                    destinationSelect.value = channelPath;
+                    
+                    // Trigger change event
+                    createDestinationVariableInputs(channelPath);
+                    loadExampleMessage(channelPath);
+                    updateFinalDestination();
+                    updateGoToOperationButton();
+                    
+                    // Highlight Send Message panel
+                    const messagePanel = document.querySelector('.message-panel');
+                    messagePanel.style.boxShadow = '0 0 20px rgba(52, 152, 219, 0.6)';
+                    setTimeout(() => {
+                        messagePanel.style.boxShadow = '';
+                    }, 2000);
+                }
+            } else if (action === 'subscribe') {
+                // For a RECEIVE operation, select that topic in the Subscription panel
+                if (apiSpec.operations && apiSpec.operations[operationPath]) {
+                    const operationSpec = apiSpec.operations[operationPath];
+                    const topicPath = getChannelPathFromRef(operationSpec.channel);
+                    
+                    const topicSelect = document.getElementById('subscription-topic');
+                    topicSelect.value = topicPath;
+                    
+                    // Trigger change event
+                    createSubscriptionVariableInputs(topicPath);
+                    updateFinalSubscription();
+                    updateGoToTopicButton();
+                    
+                    // Highlight Subscription panel
+                    const subscriptionPanel = document.querySelector('.subscription-panel');
+                    subscriptionPanel.style.boxShadow = '0 0 20px rgba(23, 162, 184, 0.6)';
+                    setTimeout(() => {
+                        subscriptionPanel.style.boxShadow = '';
+                    }, 2000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

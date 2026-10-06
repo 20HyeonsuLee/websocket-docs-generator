@@ -1,0 +1,701 @@
+asyncapi: 3.0.0
+info:
+  title: Fixture API
+  version: 9.9.9
+  description: Snapshot test
+defaultContentType: application/json
+channels:
+  /app/chat/bulk/{roomId}:
+    address: /app/chat/bulk/{roomId}
+    messages:
+      List_ChatMessageRequest:
+        $ref: '#/components/messages/List_ChatMessageRequest'
+    parameters:
+      roomId:
+        description: Destination variable 'roomId'
+        x-schema:
+          type: string
+  /app/chat/echo:
+    address: /app/chat/echo
+    messages:
+      ChatMessageRequest:
+        $ref: '#/components/messages/ChatMessageRequest'
+  /app/chat/find/{userId}:
+    address: /app/chat/find/{userId}
+    parameters:
+      userId:
+        description: Destination variable 'userId'
+        x-schema:
+          type: integer
+  /app/chat/init/{roomId}:
+    address: /app/chat/init/{roomId}
+    messages:
+      List_ChatMessage:
+        $ref: '#/components/messages/List_ChatMessage'
+    parameters:
+      roomId:
+        description: Destination variable 'roomId'
+        x-schema:
+          type: string
+  /app/chat/join/{roomId}:
+    address: /app/chat/join/{roomId}
+    messages:
+      JoinRequest:
+        $ref: '#/components/messages/JoinRequest'
+    parameters:
+      roomId:
+        description: Destination variable 'roomId'
+        x-schema:
+          type: string
+  /app/chat/me:
+    address: /app/chat/me
+  /app/chat/ping:
+    address: /app/chat/ping
+  /app/chat/scores/{roomId}:
+    address: /app/chat/scores/{roomId}
+    parameters:
+      roomId:
+        description: Destination variable 'roomId'
+        x-schema:
+          type: string
+  /app/chat/users/{roomId}:
+    address: /app/chat/users/{roomId}
+    parameters:
+      roomId:
+        description: Destination variable 'roomId'
+        x-schema:
+          type: string
+  /app/chat/whoami:
+    address: /app/chat/whoami
+  /app/events/{roomId}:
+    address: /app/events/{roomId}
+    messages:
+      UserJoinedEvent:
+        $ref: '#/components/messages/UserJoinedEvent'
+    parameters:
+      roomId:
+        description: Destination variable 'roomId'
+        x-schema:
+          type: string
+  /app/game/move/{gameId}:
+    address: /app/game/move/{gameId}
+    messages:
+      MoveRequest:
+        $ref: '#/components/messages/MoveRequest'
+    parameters:
+      gameId:
+        description: Destination variable 'gameId'
+        x-schema:
+          type: string
+  /app/game/raw:
+    address: /app/game/raw
+    messages:
+      MoveRequest:
+        $ref: '#/components/messages/MoveRequest'
+  /app/game/start/{gameId}:
+    address: /app/game/start/{gameId}
+    parameters:
+      gameId:
+        description: Destination variable 'gameId'
+        x-schema:
+          type: string
+  /app/scoreboard/mine:
+    address: /app/scoreboard/mine
+  /app/scoreboard/share/{gameId}:
+    address: /app/scoreboard/share/{gameId}
+    parameters:
+      gameId:
+        description: Destination variable 'gameId'
+        x-schema:
+          type: string
+  /app/scoreboard/submit/{gameId}:
+    address: /app/scoreboard/submit/{gameId}
+    parameters:
+      gameId:
+        description: Destination variable 'gameId'
+        x-schema:
+          type: string
+  /topic/chat/find/{userId}:
+    address: /topic/chat/find/{userId}
+    messages:
+      Optional_User:
+        $ref: '#/components/messages/Optional_User'
+    parameters:
+      userId:
+        description: Destination variable 'userId'
+        x-schema:
+          type: integer
+  /topic/chat/ping:
+    address: /topic/chat/ping
+    messages:
+      String:
+        $ref: '#/components/messages/String'
+  /topic/echo:
+    address: /topic/echo
+    messages:
+      ChatMessage:
+        $ref: '#/components/messages/ChatMessage'
+  /topic/events/{roomId}:
+    address: /topic/events/{roomId}
+    messages:
+      UserJoinedEvent:
+        $ref: '#/components/messages/UserJoinedEvent'
+    parameters:
+      roomId:
+        description: Destination variable 'roomId'
+        x-schema:
+          type: string
+  /topic/game/{gameId}/players:
+    address: /topic/game/{gameId}/players
+    messages:
+      PlayerArray:
+        $ref: '#/components/messages/PlayerArray'
+    parameters:
+      gameId:
+        description: Destination variable 'gameId'
+        x-schema:
+          type: string
+  /topic/game/{gameId}/state:
+    address: /topic/game/{gameId}/state
+    messages:
+      GameState:
+        $ref: '#/components/messages/GameState'
+      PlayerArray:
+        $ref: '#/components/messages/PlayerArray'
+    parameters:
+      gameId:
+        description: Destination variable 'gameId'
+        x-schema:
+          type: string
+  /topic/room/{roomId}:
+    address: /topic/room/{roomId}
+    messages:
+      UserJoinedEvent:
+        $ref: '#/components/messages/UserJoinedEvent'
+    parameters:
+      roomId:
+        description: Destination variable 'roomId'
+        x-schema:
+          type: string
+  /topic/room/{roomId}/scores:
+    address: /topic/room/{roomId}/scores
+    messages:
+      Map_String_Integer:
+        $ref: '#/components/messages/Map_String_Integer'
+    parameters:
+      roomId:
+        description: Destination variable 'roomId'
+        x-schema:
+          type: string
+  /topic/room/{roomId}/users:
+    address: /topic/room/{roomId}/users
+    messages:
+      UserArray:
+        $ref: '#/components/messages/UserArray'
+    parameters:
+      roomId:
+        description: Destination variable 'roomId'
+        x-schema:
+          type: string
+  /topic/scoreboard:
+    address: /topic/scoreboard
+    messages:
+      GameState:
+        $ref: '#/components/messages/GameState'
+  /topic/scoreboard/{gameId}:
+    address: /topic/scoreboard/{gameId}
+    messages:
+      GameState:
+        $ref: '#/components/messages/GameState'
+    parameters:
+      gameId:
+        description: Destination variable 'gameId'
+        x-schema:
+          type: string
+  /user/queue/chat/me:
+    address: /user/queue/chat/me
+    messages:
+      User:
+        $ref: '#/components/messages/User'
+  /user/queue/scoreboard:
+    address: /user/queue/scoreboard
+    messages:
+      GameState:
+        $ref: '#/components/messages/GameState'
+  /user/queue/scoreboard/shared:
+    address: /user/queue/scoreboard/shared
+    messages:
+      GameState:
+        $ref: '#/components/messages/GameState'
+  /user/queue/whoami:
+    address: /user/queue/whoami
+    messages:
+      User:
+        $ref: '#/components/messages/User'
+operations:
+  /app/chat/bulk/{roomId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1chat~1bulk~1{roomId}'
+    x-stomp-frame: SEND
+    messages:
+    - $ref: '#/channels/~1app~1chat~1bulk~1{roomId}/messages/List_ChatMessageRequest'
+  /app/chat/echo:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1chat~1echo'
+    x-stomp-frame: SEND
+    messages:
+    - $ref: '#/channels/~1app~1chat~1echo/messages/ChatMessageRequest'
+    reply:
+      channel:
+        $ref: '#/channels/~1topic~1echo'
+      messages:
+      - $ref: '#/channels/~1topic~1echo/messages/ChatMessage'
+  /app/chat/find/{userId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1chat~1find~1{userId}'
+    x-stomp-frame: SEND
+    reply:
+      channel:
+        $ref: '#/channels/~1topic~1chat~1find~1{userId}'
+      messages:
+      - $ref: '#/channels/~1topic~1chat~1find~1{userId}/messages/Optional_User'
+  /app/chat/init/{roomId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1chat~1init~1{roomId}'
+    x-stomp-frame: SUBSCRIBE
+    summary: Recent messages
+    description: Receives the recent message list once at subscription time
+    reply:
+      channel:
+        $ref: '#/channels/~1app~1chat~1init~1{roomId}'
+      messages:
+      - $ref: '#/channels/~1app~1chat~1init~1{roomId}/messages/List_ChatMessage'
+  /app/chat/join/{roomId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1chat~1join~1{roomId}'
+    x-stomp-frame: SEND
+    summary: Join a room
+    description: A user joins the chat room
+    tags:
+    - name: chat
+    - name: room
+    messages:
+    - $ref: '#/channels/~1app~1chat~1join~1{roomId}/messages/JoinRequest'
+    reply:
+      channel:
+        $ref: '#/channels/~1topic~1room~1{roomId}'
+      messages:
+      - $ref: '#/channels/~1topic~1room~1{roomId}/messages/UserJoinedEvent'
+  /app/chat/me:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1chat~1me'
+    x-stomp-frame: SEND
+    reply:
+      channel:
+        $ref: '#/channels/~1user~1queue~1chat~1me'
+      messages:
+      - $ref: '#/channels/~1user~1queue~1chat~1me/messages/User'
+  /app/chat/ping:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1chat~1ping'
+    x-stomp-frame: SEND
+    reply:
+      channel:
+        $ref: '#/channels/~1topic~1chat~1ping'
+      messages:
+      - $ref: '#/channels/~1topic~1chat~1ping/messages/String'
+  /app/chat/scores/{roomId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1chat~1scores~1{roomId}'
+    x-stomp-frame: SEND
+    reply:
+      channel:
+        $ref: '#/channels/~1topic~1room~1{roomId}~1scores'
+      messages:
+      - $ref: '#/channels/~1topic~1room~1{roomId}~1scores/messages/Map_String_Integer'
+  /app/chat/users/{roomId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1chat~1users~1{roomId}'
+    x-stomp-frame: SEND
+    summary: User list
+    reply:
+      channel:
+        $ref: '#/channels/~1topic~1room~1{roomId}~1users'
+      messages:
+      - $ref: '#/channels/~1topic~1room~1{roomId}~1users/messages/UserArray'
+  /app/chat/whoami:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1chat~1whoami'
+    x-stomp-frame: SEND
+    reply:
+      channel:
+        $ref: '#/channels/~1user~1queue~1whoami'
+      messages:
+      - $ref: '#/channels/~1user~1queue~1whoami/messages/User'
+  /app/events/{roomId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1events~1{roomId}'
+    x-stomp-frame: SEND
+    messages:
+    - $ref: '#/channels/~1app~1events~1{roomId}/messages/UserJoinedEvent'
+    reply:
+      channel:
+        $ref: '#/channels/~1topic~1events~1{roomId}'
+      messages:
+      - $ref: '#/channels/~1topic~1events~1{roomId}/messages/UserJoinedEvent'
+  /app/game/move/{gameId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1game~1move~1{gameId}'
+    x-stomp-frame: SEND
+    summary: Move
+    tags:
+    - name: game
+    messages:
+    - $ref: '#/channels/~1app~1game~1move~1{gameId}/messages/MoveRequest'
+  /app/game/raw:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1game~1raw'
+    x-stomp-frame: SEND
+    messages:
+    - $ref: '#/channels/~1app~1game~1raw/messages/MoveRequest'
+  /app/game/start/{gameId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1game~1start~1{gameId}'
+    x-stomp-frame: SEND
+    reply:
+      channel:
+        $ref: '#/channels/~1topic~1game~1{gameId}~1state'
+      messages:
+      - $ref: '#/channels/~1topic~1game~1{gameId}~1state/messages/GameState'
+  /app/scoreboard/mine:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1scoreboard~1mine'
+    x-stomp-frame: SEND
+    reply:
+      channel:
+        $ref: '#/channels/~1user~1queue~1scoreboard'
+      messages:
+      - $ref: '#/channels/~1user~1queue~1scoreboard/messages/GameState'
+  /app/scoreboard/share/{gameId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1scoreboard~1share~1{gameId}'
+    x-stomp-frame: SEND
+    reply:
+      channel:
+        $ref: '#/channels/~1user~1queue~1scoreboard~1shared'
+      messages:
+      - $ref: '#/channels/~1user~1queue~1scoreboard~1shared/messages/GameState'
+  /app/scoreboard/submit/{gameId}:
+    action: receive
+    channel:
+      $ref: '#/channels/~1app~1scoreboard~1submit~1{gameId}'
+    x-stomp-frame: SEND
+    reply:
+      channel:
+        $ref: '#/channels/~1topic~1scoreboard'
+      messages:
+      - $ref: '#/channels/~1topic~1scoreboard/messages/GameState'
+  /topic/chat/find/{userId}:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1chat~1find~1{userId}'
+    x-stomp-scope: broadcast
+    messages:
+    - $ref: '#/channels/~1topic~1chat~1find~1{userId}/messages/Optional_User'
+  /topic/chat/ping:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1chat~1ping'
+    x-stomp-scope: broadcast
+    messages:
+    - $ref: '#/channels/~1topic~1chat~1ping/messages/String'
+  /topic/echo:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1echo'
+    x-stomp-scope: broadcast
+    messages:
+    - $ref: '#/channels/~1topic~1echo/messages/ChatMessage'
+  /topic/events/{roomId}:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1events~1{roomId}'
+    x-stomp-scope: broadcast
+    messages:
+    - $ref: '#/channels/~1topic~1events~1{roomId}/messages/UserJoinedEvent'
+  /topic/game/{gameId}/players:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1game~1{gameId}~1players'
+    x-stomp-scope: broadcast
+    summary: Participants at game start
+    messages:
+    - $ref: '#/channels/~1topic~1game~1{gameId}~1players/messages/PlayerArray'
+  /topic/game/{gameId}/state:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1game~1{gameId}~1state'
+    x-stomp-scope: broadcast
+    summary: Game state changed
+    description: Final player list when the game ends
+    tags:
+    - name: start
+    - name: game
+    messages:
+    - $ref: '#/channels/~1topic~1game~1{gameId}~1state/messages/GameState'
+    - $ref: '#/channels/~1topic~1game~1{gameId}~1state/messages/PlayerArray'
+  /topic/room/{roomId}:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1room~1{roomId}'
+    x-stomp-scope: broadcast
+    summary: Member joined
+    tags:
+    - name: room
+    messages:
+    - $ref: '#/channels/~1topic~1room~1{roomId}/messages/UserJoinedEvent'
+  /topic/room/{roomId}/scores:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1room~1{roomId}~1scores'
+    x-stomp-scope: broadcast
+    messages:
+    - $ref: '#/channels/~1topic~1room~1{roomId}~1scores/messages/Map_String_Integer'
+  /topic/room/{roomId}/users:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1room~1{roomId}~1users'
+    x-stomp-scope: broadcast
+    messages:
+    - $ref: '#/channels/~1topic~1room~1{roomId}~1users/messages/UserArray'
+  /topic/scoreboard:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1scoreboard'
+    x-stomp-scope: broadcast
+    messages:
+    - $ref: '#/channels/~1topic~1scoreboard/messages/GameState'
+  /topic/scoreboard/{gameId}:
+    action: send
+    channel:
+      $ref: '#/channels/~1topic~1scoreboard~1{gameId}'
+    x-stomp-scope: broadcast
+    messages:
+    - $ref: '#/channels/~1topic~1scoreboard~1{gameId}/messages/GameState'
+  /user/queue/chat/me:
+    action: send
+    channel:
+      $ref: '#/channels/~1user~1queue~1chat~1me'
+    x-stomp-scope: user
+    messages:
+    - $ref: '#/channels/~1user~1queue~1chat~1me/messages/User'
+  /user/queue/scoreboard:
+    action: send
+    channel:
+      $ref: '#/channels/~1user~1queue~1scoreboard'
+    x-stomp-scope: user
+    messages:
+    - $ref: '#/channels/~1user~1queue~1scoreboard/messages/GameState'
+  /user/queue/scoreboard/shared:
+    action: send
+    channel:
+      $ref: '#/channels/~1user~1queue~1scoreboard~1shared'
+    x-stomp-scope: user
+    messages:
+    - $ref: '#/channels/~1user~1queue~1scoreboard~1shared/messages/GameState'
+  /user/queue/whoami:
+    action: send
+    channel:
+      $ref: '#/channels/~1user~1queue~1whoami'
+    x-stomp-scope: user
+    messages:
+    - $ref: '#/channels/~1user~1queue~1whoami/messages/User'
+components:
+  messages:
+    ChatMessage:
+      name: ChatMessage
+      title: ChatMessage
+      payload:
+        $ref: '#/components/schemas/ChatMessage'
+    ChatMessageRequest:
+      name: ChatMessageRequest
+      title: ChatMessageRequest
+      payload:
+        $ref: '#/components/schemas/ChatMessageRequest'
+    GameState:
+      name: GameState
+      title: GameState
+      payload:
+        $ref: '#/components/schemas/GameState'
+    JoinRequest:
+      name: JoinRequest
+      title: JoinRequest
+      payload:
+        $ref: '#/components/schemas/JoinRequest'
+    List_ChatMessage:
+      name: List_ChatMessage
+      title: List<ChatMessage>
+      payload:
+        type: array
+        items:
+          $ref: '#/components/schemas/ChatMessage'
+    List_ChatMessageRequest:
+      name: List_ChatMessageRequest
+      title: List<ChatMessageRequest>
+      payload:
+        type: array
+        items:
+          $ref: '#/components/schemas/ChatMessageRequest'
+    Map_String_Integer:
+      name: Map_String_Integer
+      title: Map<String, Integer>
+      payload:
+        type: object
+        additionalProperties:
+          type: integer
+    MoveRequest:
+      name: MoveRequest
+      title: MoveRequest
+      payload:
+        $ref: '#/components/schemas/MoveRequest'
+    Optional_User:
+      name: Optional_User
+      title: Optional<User>
+      payload:
+        $ref: '#/components/schemas/User'
+    PlayerArray:
+      name: PlayerArray
+      title: Player[]
+      payload:
+        type: array
+        items:
+          $ref: '#/components/schemas/Player'
+    String:
+      name: String
+      title: String
+      payload:
+        type: string
+    User:
+      name: User
+      title: User
+      payload:
+        $ref: '#/components/schemas/User'
+    UserArray:
+      name: UserArray
+      title: User[]
+      payload:
+        type: array
+        items:
+          $ref: '#/components/schemas/User'
+    UserJoinedEvent:
+      name: UserJoinedEvent
+      title: UserJoinedEvent
+      payload:
+        $ref: '#/components/schemas/UserJoinedEvent'
+  schemas:
+    ChatMessage:
+      type: object
+      properties:
+        content:
+          type: string
+        mentions:
+          type: array
+          items:
+            type: string
+        sender:
+          $ref: '#/components/schemas/User'
+    ChatMessageRequest:
+      type: object
+      properties:
+        content:
+          type: string
+        sender:
+          type: string
+        type:
+          type: string
+          enum:
+          - TEXT
+          - IMAGE
+          - FILE
+      required:
+      - content
+    GameSettings:
+      type: object
+      properties:
+        ranked:
+          type: boolean
+        rounds:
+          type: integer
+    GameState:
+      type: object
+      properties:
+        gameId:
+          type: string
+        metadata:
+          type: object
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/Player'
+        settings:
+          $ref: '#/components/schemas/GameSettings'
+    JoinRequest:
+      type: object
+      properties:
+        userName:
+          type: string
+        userType:
+          type: string
+          enum:
+          - GUEST
+          - MEMBER
+          - ADMIN
+    MoveRequest:
+      type: object
+      properties:
+        x:
+          type: integer
+        y:
+          type: integer
+    Player:
+      type: object
+      properties:
+        id:
+          type: string
+        nickname:
+          type: string
+        score:
+          type: integer
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    UserJoinedEvent:
+      type: object
+      properties:
+        joinedAt:
+          type: string
+          format: date-time
+        roomId:
+          type: string
+        userName:
+          type: string

@@ -1,1 +1,1 @@
-generator.config.DocsAutoConfiguration
+io.github.hyeonsulee.wsdocs.autoconfigure.WsDocsAutoConfiguration

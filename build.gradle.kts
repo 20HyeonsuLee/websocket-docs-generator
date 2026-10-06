@@ -1,61 +1,118 @@
 import com.vanniktech.maven.publish.SonatypeHost
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
-    id("java-library")
-    id("org.springframework.boot") version "3.5.3"
+    `java-library`
+    // This is a library: the Boot plugin is only referenced for its BOM coordinates, never applied.
+    id("org.springframework.boot") apply false
     id("io.spring.dependency-management") version "1.1.7"
     id("com.vanniktech.maven.publish") version "0.28.0"
-    `maven-publish`
     signing
 }
+
 group = "io.github.20hyeonsulee"
-version = "1.0.7"
+version = "2.0.0"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    compileOnly("org.projectlombok:lombok:1.18.34")
-    annotationProcessor("org.projectlombok:lombok:1.18.34")
-    
-    // 사용자 프로젝트에서 제공될 것으로 기대하는 의존성
-    compileOnly("org.springframework:spring-messaging")
-    compileOnly("org.springframework:spring-websocket") 
-    compileOnly("org.springframework.boot:spring-boot-autoconfigure")
-
-    // 내부 구현용 - 버전을 고정하되 사용자에게 노출되지 않음
-    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.0")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.18.0")
-    implementation("org.reflections:reflections:0.10.2")
-    implementation("com.github.victools:jsonschema-generator:4.37.0")
-    implementation("org.yaml:snakeyaml:2.0")
+dependencyManagement {
+    imports {
+        mavenBom(SpringBootPlugin.BOM_COORDINATES)
+    }
 }
 
-// 라이브러리이므로 bootJar 비활성화
-tasks.bootJar {
-    enabled = false
+dependencies {
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    // Provided by the consuming Spring Boot application; no versions are forced on it.
+    compileOnly("org.springframework.boot:spring-boot-autoconfigure")
+    compileOnly("org.springframework:spring-context")
+    compileOnly("org.springframework:spring-messaging")
+    compileOnly("org.springframework:spring-webmvc")
+    compileOnly("jakarta.servlet:jakarta.servlet-api")
+    compileOnly("com.fasterxml.jackson.core:jackson-databind")
+    compileOnly("org.yaml:snakeyaml")
+
+    // Internal implementation detail; none of its types appear in the public API.
+    implementation("com.github.victools:jsonschema-generator:4.37.0")
+    implementation("com.github.victools:jsonschema-module-jackson:4.37.0")
+
+    // Generates META-INF/spring-configuration-metadata.json for IDE completion of websocket.docs.* keys.
+    // Must come after Lombok so the generated getters/setters are visible to it.
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-web")
+    testImplementation("org.springframework.boot:spring-boot-starter-websocket")
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+    // Lets the fixture controllers' parameter names be read reflectively (for @DestinationVariable without a value).
+    options.compilerArgs.add("-parameters")
+}
+
+// Boots the fixture app so the docs UI can be inspected at http://localhost:8080/ws-docs.
+tasks.register<JavaExec>("runTestApp") {
+    group = "application"
+    description = "Runs the fixture Spring Boot app from src/test so the docs UI can be opened in a browser."
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass = "io.github.hyeonsulee.wsdocs.fixture.TestWsApp"
+    standardInput = System.`in`
 }
 
 tasks.jar {
-    enabled = true
-    archiveClassifier = ""
+    manifest {
+        attributes("Automatic-Module-Name" to "io.github.hyeonsulee.wsdocs")
+    }
 }
 
-signing {
-    useGpgCmd()
-    sign(publishing.publications)
+tasks.test {
+    useJUnitPlatform()
+    // Refresh the snapshot with: ./gradlew test -Dwsdocs.updateSnapshot=true
+    systemProperty("wsdocs.updateSnapshot", System.getProperty("wsdocs.updateSnapshot", "false"))
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
+
+// Sign only when a Maven Central publish task (publishToMavenCentral*) was requested,
+// so build / publishToMavenLocal work without a GPG key.
+val signingRequested = gradle.startParameter.taskNames.any { it.contains("MavenCentral") }
+
+if (signingRequested) {
+    signing {
+        // CI uses the signingInMemoryKey* properties; local builds use signing.gnupg.* with the gpg command.
+        if (project.hasProperty("signing.gnupg.keyName") && !project.hasProperty("signingInMemoryKey")) {
+            useGpgCmd()
+        }
+    }
 }
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    if (signingRequested) {
+        signAllPublications()
+    }
 
-    coordinates("io.github.20hyeonsulee", "websocket-docs-generator", "1.0.7")
+    coordinates(group.toString(), "websocket-docs-generator", version.toString())
 
     pom {
         name = "WebSocket Docs Generator"
-        description = "A Java library for generating WebSocket API documentation"
+        description = "AsyncAPI 3.0 documentation generator for Spring Boot STOMP/WebSocket applications"
         inceptionYear = "2025"
         url = "https://github.com/20HyeonsuLee/websocket-docs-generator"
 

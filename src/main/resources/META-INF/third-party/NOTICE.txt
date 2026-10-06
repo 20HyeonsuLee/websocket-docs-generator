@@ -1,0 +1,5 @@
+This jar bundles the following third-party browser libraries under src/main/resources/ws-docs/vendor.
+They are served by the documentation page only and are not exposed as Java API.
+
+  sockjs-client 1.6.1   https://github.com/sockjs/sockjs-client   MIT License          (sockjs-client-LICENSE.txt)
+  @stomp/stompjs 7.1.1  https://github.com/stomp-js/stompjs       Apache License 2.0   (stompjs-LICENSE.txt)

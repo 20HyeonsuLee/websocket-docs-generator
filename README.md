@@ -1,93 +1,50 @@
-# 🔌 WebSocket Docs Generator
+# WebSocket Docs Generator
 
-**Spring Boot WebSocket API를 위한 자동 AsyncAPI 문서 생성 라이브러리**
+**AsyncAPI 3.0 documentation and an interactive STOMP console for Spring Boot WebSocket applications — zero configuration.**
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.20hyeonsulee/websocket-docs-generator.svg)](https://search.maven.org/artifact/io.github.20hyeonsulee/websocket-docs-generator)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.20hyeonsulee/websocket-docs-generator.svg)](https://central.sonatype.com/artifact/io.github.20hyeonsulee/websocket-docs-generator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/java-17+-blue.svg)](https://openjdk.java.net/)
-[![Version](https://img.shields.io/badge/version-1.0.7-blue.svg)](https://github.com/20HyeonsuLee/websocket-docs-generator)
+[![CI](https://github.com/20HyeonsuLee/websocket-docs-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/20HyeonsuLee/websocket-docs-generator/actions/workflows/ci.yml)
 
-<img width="1431" height="647" alt="image" src="https://github.com/user-attachments/assets/6f4cd735-f13f-42a6-921e-84bb24ff4bac" />
-<img width="1237" height="715" alt="image" src="https://github.com/user-attachments/assets/f4198c91-d8c6-48f3-bcdf-83c6f9cba04c" />
-<img width="1208" height="652" alt="image" src="https://github.com/user-attachments/assets/8338e940-6596-4e36-8dc4-ae89cf05f528" />
+Think *springdoc for STOMP*. Add one dependency and `/ws-docs` lists every `@MessageMapping` and `@SubscribeMapping`
+handler in your application, the messages it receives, the messages it publishes, and the JSON schemas of both —
+read from the Spring container, not from annotations you have to write. The page includes a STOMP client so you can
+subscribe and send messages the same way you try requests in Swagger UI.
 
+<img width="1431" height="647" alt="operations" src="https://github.com/user-attachments/assets/6f4cd735-f13f-42a6-921e-84bb24ff4bac" />
+<img width="1237" height="715" alt="schemas" src="https://github.com/user-attachments/assets/f4198c91-d8c6-48f3-bcdf-83c6f9cba04c" />
+<img width="1208" height="652" alt="test console" src="https://github.com/user-attachments/assets/8338e940-6596-4e36-8dc4-ae89cf05f528" />
 
-## 📋 개요
+## Why
 
-Spring Boot 기반의 WebSocket/STOMP 애플리케이션을 위한 **AsyncAPI 3.0 문서를 자동으로 생성**하는 라이브러리입니다. 
-간단한 애노테이션 추가만으로 전문적인 WebSocket API 문서와 대화형 테스트 인터페이스를 제공합니다.
+- **Nothing to configure.** Endpoints come from Spring's STOMP handler registry (`SimpAnnotationMethodMessageHandler`)
+  and bean definitions, the same way springdoc reads `RequestMappingHandlerMapping`. Application and user destination
+  prefixes are taken from your `@EnableWebSocketMessageBroker` configuration.
+- **Publications are inferred.** Return types, `@SendTo`, `@SendToUser`, class-level `@SendTo`, and the
+  `@SubscribeMapping` direct reply are documented exactly as Spring routes them. Annotate only what cannot be seen in
+  code, such as `SimpMessagingTemplate.convertAndSend` calls.
+- **Standard output.** A valid [AsyncAPI 3.0](https://www.asyncapi.com/) document is served as YAML and JSON for other
+  tools. Operations use the server perspective the spec requires (`receive` = the server receives, `send` = the server
+  sends); the UI shows the client's view (*send to* / *subscribe to*).
+- **Interactive console.** Connect over SockJS/STOMP, subscribe to topics and send messages from the docs page, with
+  example payloads generated from the schemas.
+- **Accurate schemas.** `List<User>`, `Map<String, List<Score>>`, `Optional<User>`, arrays, enums, nested DTOs and
+  `java.time` types are rendered correctly. Your application's Jackson `ObjectMapper` is used, so a global
+  `SNAKE_CASE` naming strategy or `@JsonProperty` shows up in the document.
+- **Nothing leaks into your project.** Spring, Jackson and SnakeYAML are `compileOnly`; the only transitive
+  dependencies are the two [victools](https://github.com/victools/jsonschema-generator) schema modules. The UI assets
+  are bundled, no CDN.
+- **Off in production.** `websocket.docs.enabled=false` registers no beans at all.
 
-### ✨ 주요 특징
+## Installation
 
-- 🚀 **완전 자동화**: 기존 코드에 간단한 애노테이션만 추가
-- 📄 **AsyncAPI 3.0 지원**: 표준 WebSocket API 명세 생성
-- 🎨 **인터랙티브 UI**: 실시간 WebSocket 테스트 및 디버깅
-- 🔧 **Spring Boot 통합**: Auto-Configuration으로 즉시 사용 가능
-- 🎯 **JSON Schema 자동 생성**: DTO 클래스에서 스키마 자동 추출
-- 🛠️ **운영 환경 지원**: 프로덕션 환경에서 문서 비활성화 가능
-- 📋 **제네릭 타입 지원**: `List<User>`, `Optional<String>` 등 1-depth 제네릭 타입 완벽 지원
-- 🎭 **스마트 타입 처리**: 복잡한 패키지명을 간단한 클래스명으로 자동 변환
-
-## 🏗️ 아키텍처 & 컨셉
-
-### 핵심 설계 철학
-
-이 프로젝트는 **"개발자가 이미 작성한 코드에서 문서를 추출한다"** 는 철학을 기반으로 설계되었습니다.
-
-```mermaid
-graph TD
-    A[Spring Boot WebSocket Controller] --> B[Reflection 기반 코드 분석]
-    B --> C[AsyncAPI 3.0 JSON 생성]
-    C --> D[Thymeleaf 기반 문서 렌더링]
-    D --> E[Interactive WebSocket Test UI]
-```
-
-### 작동 원리
-
-1. **코드 스캔**: `@MessageMapping`, `@MessageResponse` 등의 애노테이션이 붙은 메소드들을 스캔
-2. **스키마 생성**: DTO 클래스들을 분석하여 JSON Schema 자동 생성
-3. **AsyncAPI 생성**: AsyncAPI 3.0 표준에 따라 WebSocket API 명세 생성  
-4. **문서 렌더링**: Thymeleaf 템플릿으로 인터랙티브한 HTML 문서 생성
-
-## 🔧 프로젝트 구조
-
-```
-src/main/java/generator/
-├── annotaions/                    # 커스텀 애노테이션 정의
-│   ├── Operation.java             # 오퍼레이션 메타데이터 (summary, description)
-│   ├── MessageResponse.java       # 메시지 응답 정의 (경로, 반환 타입)
-│   ├── JsonSchemaEnumType.java    # JSON Schema Enum 타입 지원
-├── config/                        # Spring Boot 설정
-│   ├── DocsAutoConfiguration.java # Auto Configuration 클래스
-│   └── DocsProperties.java        # 설정 프로퍼티
-├── controller/                    # Web Controller
-│   └── DocsController.java        # 문서 엔드포인트 (/docs)
-└── AsyncApiGenerator.java         # 핵심 문서 생성 로직
-```
-
-### 핵심 클래스 상세
-
-#### `AsyncApiGenerator.java`
-- **역할**: AsyncAPI 3.0 명세 생성의 핵심 엔진
-- **기능**:
-  - Reflection을 사용하여 `@MessageMapping` 메소드 스캔
-  - DTO 클래스에서 JSON Schema 자동 생성
-  - WebSocket 채널 및 오퍼레이션 정의 생성
-  - 최종 AsyncAPI YAML 출력
-
-#### Custom Annotations
-- `@Operation`: 메소드에 summary, description 추가
-- `@MessageResponse`: STOMP 응답 메시지 정의 (path, returnType)
-- `@JsonSchemaEnumType`: Enum 필드의 JSON Schema 생성 지원
-
-## 📦 설치 & 설정
-
-### 1. 의존성 추가
+Requires Java 17+ and Spring Boot 3.2–3.5 with `spring-boot-starter-web` and `spring-boot-starter-websocket`.
 
 **Gradle (Kotlin DSL)**
 ```kotlin
 dependencies {
-    implementation("io.github.20hyeonsulee:websocket-docs-generator:1.0.7")
+    implementation("io.github.20hyeonsulee:websocket-docs-generator:2.0.0")
 }
 ```
 
@@ -96,327 +53,228 @@ dependencies {
 <dependency>
     <groupId>io.github.20hyeonsulee</groupId>
     <artifactId>websocket-docs-generator</artifactId>
-    <version>1.0.7</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
-### 2. 설정 파일 구성
+Start the application and open `http://localhost:8080/ws-docs`.
 
-**application.yml**
+## What gets documented without annotations
+
+```java
+@Controller
+@MessageMapping("/chat")
+public class ChatController {
+
+    @MessageMapping("/join/{roomId}")
+    @SendTo("/topic/room/{roomId}")
+    public UserJoinedEvent join(@DestinationVariable String roomId, JoinRequest request) { ... }
+
+    @MessageMapping("/whoami")
+    @SendToUser
+    public User whoami(Principal principal) { ... }
+
+    @SubscribeMapping("/init/{roomId}")
+    public List<ChatMessage> history(@DestinationVariable String roomId) { ... }
+}
+```
+
+| Code | Document |
+|---|---|
+| `@MessageMapping("/join/{roomId}")` with class prefix and `/app` from the broker config | `receive` operation on channel `/app/chat/join/{roomId}`, `x-stomp-frame: SEND`, parameter `roomId` typed from the `@DestinationVariable` |
+| `JoinRequest request` | request message; `@Payload` wins if present, `@DestinationVariable`, `@Header(s)`, `Principal`, `MessageHeaders`, `MessageHeaderAccessor` and security principals are skipped, `Message<T>` unwraps to `T` |
+| return type + `@SendTo("/topic/room/{roomId}")` | `send` operation on `/topic/room/{roomId}` with `UserJoinedEvent`, linked as the `reply` of the receive operation |
+| return type + `@SendToUser` (no value) | `send` operation on `/user/queue/whoami`, `x-stomp-scope: user` (`/user` + `/queue` + request path, as Spring does) |
+| return type, no annotation | `send` operation on `{default-destination-prefix}` + request path, as Spring does |
+| `@SendTo` + `@SendToUser` on the same method, or on the class | both honoured, with the same precedence as Spring |
+| `@SubscribeMapping` with a return value | `receive` operation with `x-stomp-frame: SUBSCRIBE`; the value goes directly to the subscriber, so it appears only as the `reply`, not as a broker `send` |
+| enum fields, `@JsonProperty(required = true)`, `@JsonPropertyOrder`, `@JsonIgnore`, `@JsonNaming`, the `ObjectMapper` naming strategy | JSON Schema `enum`, `required`, property order, exclusions, property names |
+
+## Annotations
+
+Three annotations in `io.github.hyeonsulee.wsdocs.api` add what cannot be inferred.
+
+### `@WsOperation` — describe a handler
+
+```java
+@MessageMapping("/join/{roomId}")
+@SendTo("/topic/room/{roomId}")
+@WsOperation(
+        summary = "Join a room",
+        description = "Announces the new member to everyone in the room.",
+        tags = {"chat", "room"},
+        publishes = @WsPublication(destination = "/topic/room/{roomId}", payload = UserJoinedEvent.class,
+                summary = "Member joined"))
+public UserJoinedEvent join(@DestinationVariable String roomId, JoinRequest request) { ... }
+```
+
+`summary`, `description` and `tags` describe the receive operation. `publishes` lists messages the handler sends.
+A publication with the same destination and payload as the inferred reply only adds text to it; others are added as
+further messages the handler sends.
+
+### `@WsPublication` — declare a message the server sends
+
+Use it on any Spring bean method, repeated as often as needed, for messages sent through `SimpMessagingTemplate`,
+schedulers or event listeners.
+
+```java
+@Service
+public class GameEventPublisher {
+
+    @WsPublication(destination = "/topic/game/{gameId}/state", payload = GameState.class,
+            summary = "Game state changed", tags = "game")
+    @WsPublication(destination = "/topic/game/{gameId}/players", payload = Player[].class)
+    public void broadcast(String gameId, GameState state) {
+        template.convertAndSend("/topic/game/" + gameId + "/state", state);
+        template.convertAndSend("/topic/game/" + gameId + "/players", state.players());
+    }
+}
+```
+
+`destination` is the absolute STOMP destination, exactly the string passed to `convertAndSend`. `payload` is a
+class; use an array type such as `User[].class` for lists (annotations cannot express generics — for `Map` or
+deeper generics let the return type be inferred instead). Publications to the same destination from several methods
+are merged into one `send` operation listing every payload. Destinations under the user prefix (`/user` by default)
+are marked `x-stomp-scope: user`.
+
+### `@WsHidden` — exclude from the document
+
+On a class it hides every handler and publication in it; on a method only that method.
+
+```java
+@WsHidden
+@MessageMapping("/admin/reset/{roomId}")
+public void reset(@DestinationVariable String roomId) { ... }
+```
+
+## Configuration
+
+Everything is optional.
+
 ```yaml
 websocket:
   docs:
-    # 문서 생성 활성화 여부 (기본값: true)
-    enabled: true
-    
-    # 스캔할 베이스 패키지 (필수)
-    base-package: "com.example.websocket"
-    
-    # WebSocket 경로 설정
-    app-path: "/app"        # 클라이언트 → 서버 메시지 경로
-    topic-path: "/topic"    # 서버 → 클라이언트 메시지 경로
-    
-    # WebSocket 서버 URL (테스트 페이지 기본값)
-    server-url: "http://localhost:8080/ws"
-    
-    # 문서 정보
+    enabled: true                        # false registers no beans at all
+    path: /ws-docs                       # docs page; /asyncapi.yaml and /asyncapi.json live under it
+    default-destination-prefix: /topic   # where a bare return value goes (Spring's default)
+    server-url: http://localhost:8080/ws # SockJS endpoint pre-filled in the console
     info:
-      title: "WebSocket API 명세서"
-      version: "1.0.0"
-      description: "실시간 WebSocket 통신 API 문서"
+      title: Chat WebSocket API
+      version: 1.0.0
+      description: Real-time chat API
 ```
 
-### 3. 운영 환경 설정
+| Endpoint | Content |
+|---|---|
+| `GET /ws-docs` | documentation page with the STOMP console |
+| `GET /ws-docs/asyncapi.yaml` | AsyncAPI 3.0 document, YAML |
+| `GET /ws-docs/asyncapi.json` | AsyncAPI 3.0 document, JSON |
 
-프로덕션 환경에서 문서를 비활성화하려면:
+### Spring Security
+
+Allow the docs path, or disable the docs in production:
+
+```java
+http.authorizeHttpRequests(auth -> auth
+        .requestMatchers("/ws-docs", "/ws-docs/**").permitAll()
+        .anyRequest().authenticated());
+```
 
 ```yaml
 # application-prod.yml
 websocket:
   docs:
-    enabled: false  # 문서 생성 비활성화
+    enabled: false
 ```
 
-## 🎯 사용법
+### Replacing beans
 
-### 1. 기본 WebSocket Controller 작성
+`EndpointScanner`, `AsyncApiGenerator` and `WsDocsController` are registered with `@ConditionalOnMissingBean`
+(bean names `wsDocsEndpointScanner`, `wsDocsAsyncApiGenerator`, `wsDocsController`); define a bean of the same type
+to replace one. The document is generated on first request and cached; `AsyncApiGenerator.refresh()` clears the
+cache. Types under `io.github.hyeonsulee.wsdocs.internal` are not part of the public API and may change in any
+release.
 
-```java
-@Controller
-public class ChatController {
-    
-    @Operation(
-        summary = "채팅방 입장", 
-        description = "사용자가 특정 채팅방에 입장합니다"
-    )
-    @MessageMapping("/chat/join/{roomId}")
-    @MessageResponse(path = "/room/{roomId}", returnType = UserJoinedEvent.class)
-    public void joinRoom(@DestinationVariable String roomId, JoinRequest request) {
-        // 채팅방 입장 로직
-        UserJoinedEvent event = new UserJoinedEvent(request.getUserName(), roomId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, event);
-    }
-    
-    @Operation(
-        summary = "메시지 전송",
-        description = "채팅방에 메시지를 전송합니다"
-    )  
-    @MessageMapping("/chat/message/{roomId}")
-    @MessageResponse(path = "/room/{roomId}", returnType = ChatMessage.class)
-    public void sendMessage(@DestinationVariable String roomId, ChatMessageRequest request) {
-        ChatMessage message = new ChatMessage(request.getContent(), request.getSender(), roomId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, message);
-    }
-    
-    // 🆕 제네릭 타입 지원 예시
-    @Operation(
-        summary = "사용자 목록 조회",
-        description = "채팅방의 모든 사용자 목록을 반환합니다"
-    )
-    @MessageMapping("/chat/users/{roomId}")
-    @MessageResponse(path = "/room/{roomId}/users", returnType = List.class, genericType = User.class)
-    public void getUserList(@DestinationVariable String roomId) {
-        List<User> users = chatService.getUsersInRoom(roomId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/users", users);
-    }
-}
-```
+## Document format
 
-### 2. DTO 클래스 정의
+The output follows AsyncAPI 3.0 and validates with the official parser. STOMP specifics that the spec has no field
+for are extensions:
 
-```java
-// 요청 DTO
-public class JoinRequest {
-    private String userName;
-    private String userType;
-    // getters, setters...
-}
+| Extension | Where | Values |
+|---|---|---|
+| `x-stomp-frame` | `receive` operations | `SEND` for `@MessageMapping`, `SUBSCRIBE` for `@SubscribeMapping` |
+| `x-stomp-scope` | `send` operations | `broadcast`, or `user` for destinations under the user prefix |
+| `x-schema` | channel parameters | JSON Schema of the `@DestinationVariable` type (enums use the standard `enum` field instead) |
 
-// 응답 DTO  
-public class UserJoinedEvent {
-    private String userName;
-    private String roomId;
-    private LocalDateTime joinedAt;
-    // getters, setters...
-}
+Message keys are derived from the Java type (`User`, `List_User`, `UserArray`); `title` carries the readable form
+(`List<User>`). Containers are rendered structurally and only DTOs become `components/schemas` entries.
 
-// Enum 처리가 필요한 경우
-public class ChatMessageRequest {
-    private String content;
-    private String sender;
-    
-    @JsonSchemaEnumType(enumType = MessageType.class)
-    private String messageType;
-    // getters, setters...
-}
+## Limitations
 
-enum MessageType {
-    TEXT, IMAGE, FILE, EMOJI
-}
-```
+- Only the first application destination prefix is used when several are configured.
+- `@MessageExceptionHandler` methods are not documented.
+- GraalVM native image: the library registers hints for its own annotations and resources, but the DTOs the schema
+  generator inspects must be registered for reflection by the application.
+- Spring Boot 4 (Jackson 3) is not supported by this line; a separate line based on victools 5 is planned.
 
-### 3. 문서 접근
+## Migrating from 1.0.x
 
-애플리케이션 실행 후 `http://localhost:8080/docs`에 접속하면 자동 생성된 WebSocket API 문서를 확인할 수 있습니다.
+2.0.0 is a rewrite. The `generator.annotaions.*` annotations and the `base-package`, `app-path` and `topic-path`
+properties are gone.
 
-### 4. 🆕 제네릭 타입 사용 예시
+| 1.0.x | 2.0.0 |
+|---|---|
+| `@Operation(summary, description)` | `@WsOperation(summary, description, tags)` |
+| `@MessageResponse(path = "/room/{id}", returnType = X.class)` | `@WsPublication(destination = "/topic/room/{id}", payload = X.class)` — absolute destination |
+| `@MessageResponse(returnType = List.class, genericType = User.class)` | `@WsPublication(payload = User[].class)` |
+| `@JsonSchemaEnumType` | not needed; declare the field with the enum type |
+| docs at `/docs` | `/ws-docs`, or set `websocket.docs.path: /docs` |
+| `websocket.docs.base-package`, `app-path` | removed; read from the Spring container |
+| `websocket.docs.topic-path` | `websocket.docs.default-destination-prefix` |
 
-**1-depth 제네릭 타입을 완벽 지원합니다:**
+Behavioural changes: every `@MessageMapping` is documented even without a publication; publications are inferred
+from return values and `@SendTo`/`@SendToUser`; `action` follows the AsyncAPI 3.0 server perspective; channel and
+operation keys are full addresses; path variables become channel parameters; container types are no longer
+registered as schemas.
 
-```java
-// List 타입
-@MessageResponse(path = "/users", returnType = List.class, genericType = User.class)
-// → 문서에서 "List<User>"로 표시, 배열 스키마 자동 생성
-
-// Optional 타입  
-@MessageResponse(path = "/result", returnType = Optional.class, genericType = String.class)
-// → 문서에서 "Optional<String>"로 표시
-
-// Map 타입
-@MessageResponse(path = "/data", returnType = Map.class, genericType = Object.class)
-// → 문서에서 "Map<Object>"로 표시
-
-// 제네릭 없는 일반 타입
-@MessageResponse(path = "/user", returnType = User.class)
-// → 문서에서 "User"로 표시
-```
-
-**생성되는 문서 형태:**
-- **Messages**: `List<User>`, `Optional<String>` 등으로 직관적 표시
-- **Example**: `[{User 객체 예시}]` 형태의 배열 예시 자동 생성
-- **Schema**: List 자체가 아닌 제네릭 타입(`User`)의 스키마만 생성
-
-## 🎨 생성되는 문서 기능
-
-### 📄 AsyncAPI 문서
-- **Operations**: SEND/RECEIVE 오퍼레이션 자동 분류
-- **Channels**: WebSocket 채널별 메시지 스키마
-- **Components**: DTO 기반 JSON Schema 자동 생성
-- **Interactive UI**: 접기/펼치기 가능한 직관적인 인터페이스
-
-### 🧪 실시간 테스트 도구
-- **WebSocket 연결**: SockJS/STOMP 연결 테스트
-- **메시지 전송**: JSON 페이로드로 실시간 메시지 전송
-- **구독 관리**: Topic 구독/해제 및 실시간 메시지 수신
-- **변수 치환**: 경로 변수 (`{roomId}`, `{userId}`) 자동 치환 UI
-- **로그 모니터링**: 연결 상태 및 송수신 메시지 실시간 로깅
-
-## 🔧 고급 설정
-
-### 1. Enum 타입 스키마 생성
-
-```java
-public class OrderRequest {
-    @JsonSchemaEnumType(enumType = OrderStatus.class)
-    private String status;  // JSON Schema에서 enum으로 표시됨
-}
-```
-
-### 2. 복잡한 중첩 객체 지원
-
-```java  
-public class GameState {
-    private String gameId;
-    private List<Player> players;      // 배열 스키마 자동 생성
-    private GameSettings settings;     // 중첩 객체 스키마 자동 생성
-    private Map<String, Object> metadata;  // Map 타입도 지원
-}
-```
-
-### 3. 🆕 제네릭 타입 고급 활용
-
-```java
-// 복잡한 제네릭 파라미터 처리
-@MessageMapping("/game/players/{gameId}")
-public void updatePlayers(@DestinationVariable String gameId, List<PlayerUpdate> updates) {
-    // List<PlayerUpdate> 자동 인식 및 스키마 생성
-}
-
-// 제네릭 응답 타입
-@MessageResponse(path = "/game/{gameId}/results", returnType = Optional.class, genericType = GameResult.class)
-public void sendGameResult(@DestinationVariable String gameId) {
-    // Optional<GameResult> 타입으로 문서 생성
-}
-```
-
-### 4. 스마트 타입 이름 처리
-
-라이브러리는 자동으로 복잡한 패키지명을 처리합니다:
-
-- **Java 코드**: `com.example.chat.dto.ChatMessageRequest`
-- **문서 표시**: `ChatMessageRequest`
-- **제네릭**: `java.util.List<com.example.User>` → `List<User>`
-
-### 5. JSON 호환성 보장
-
-내부적으로 제네릭 타입을 JSON 호환 형태로 처리:
-- **내부 키**: `List_User` (JSON 파싱용)
-- **사용자 표시**: `List<User>` (직관적 표시)
-
-## 🚀 개발 환경 설정
-
-### 요구사항
-- **Java**: 17+
-- **Spring Boot**: 3.0+
-- **Build Tool**: Gradle 8.0+ 또는 Maven 3.8+
-
-### 로컬 개발용 빌드
+## Development
 
 ```bash
-git clone https://github.com/20HyeonsuLee/websocket-docs-generator.git
-cd websocket-docs-generator
-
-# Gradle을 사용하는 경우
-./gradlew build
-
-# 테스트 실행
-./gradlew test
-
-# 로컬 Maven 저장소에 설치
+./gradlew build                                 # compile, test, jar
+./gradlew test -Dwsdocs.updateSnapshot=true     # refresh src/test/resources/expected/asyncapi.yaml
+./gradlew runTestApp                            # boot the fixture app, then open http://localhost:8080/ws-docs
+./gradlew build -PspringBootVersion=3.2.12      # build against another Boot line (CI runs 3.2–3.5)
 ./gradlew publishToMavenLocal
 ```
 
-## 🎯 사용 사례
+Tests scan the fixture controllers under `src/test/java/.../fixture`, compare the generated YAML with a snapshot and
+cover inference rules, generics, destination parameters, hidden endpoints, auto-configuration conditions and the
+HTTP endpoints.
 
-### 실시간 채팅 애플리케이션
-```yaml
-# 생성되는 AsyncAPI 예시
-operations:
-  '/chat/join/{roomId}':
-    action: send
-    summary: 채팅방 입장
-    channel: '/app/chat/join/{roomId}'
-    reply:
-      channel: '/topic/room/{roomId}'
-      messages: [UserJoinedEvent]
-      
-  '/chat/users/{roomId}':  # 🆕 제네릭 타입 예시
-    action: send
-    summary: 사용자 목록 조회
-    channel: '/app/chat/users/{roomId}'
-    reply:
-      channel: '/topic/room/{roomId}/users'
-      messages: [List_User]  # 내부적으로 List_User로 처리
-```
+### Releasing
 
-### 실시간 게임 상태 동기화
-```yaml  
-operations:
-  '/game/move/{gameId}':
-    action: send
-    channel: '/app/game/move/{gameId}'
-    messages: [PlayerMoveRequest]
-    reply:
-      channel: '/topic/game/{gameId}/state'  
-      messages: [GameStateUpdate]
-      
-  '/game/players/{gameId}':  # 🆕 List 파라미터 지원
-    action: send
-    channel: '/app/game/players/{gameId}'
-    messages: [List_PlayerUpdate]
-```
+Push a tag like `v2.0.0`; GitHub Actions builds, tests and publishes to Maven Central. The tag must match `version`
+in `build.gradle.kts`. Required repository secrets: `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD`,
+`SIGNING_KEY` (ASCII-armored private key), `SIGNING_KEY_ID`, `SIGNING_PASSWORD`. For local publishing keep credentials
+in `~/.gradle/gradle.properties`; the project's `gradle.properties` is git-ignored.
 
-### 문서에서의 표시
-실제 문서에서는 사용자 친화적으로 표시됩니다:
-- **Payload Type**: `List<User>` (화면 표시)
-- **Example**: `[{"id": 1, "name": "사용자1"}, {"id": 2, "name": "사용자2"}]`
-- **Schema Tree**: Array > items > User 구조
+## Changelog
 
-## 🔄 버전 히스토리
+- **2.0.0** — Rewrite. Endpoints read from the Spring container instead of classpath scanning; publications inferred
+  from return values, `@SendTo`, `@SendToUser` and `@SubscribeMapping`; new `@WsOperation`/`@WsPublication`/`@WsHidden`
+  annotations; AsyncAPI 3.0 server-perspective actions, channel parameters, `x-stomp-frame`/`x-stomp-scope`;
+  correct schemas for generics, `Map`, `Optional`, enums and nested DTOs; application `ObjectMapper` honoured;
+  bundled UI assets, GraalVM hints, Boot 3.2–3.5 CI matrix. Legacy annotations and properties removed.
+- **1.0.7** — one-level generics, type display improvements.
+- **1.0.6** — `enabled: false`, enum schemas.
+- **1.0.2** — JSON Schema generation fixes.
+- **1.0.0** — initial release.
 
-- **1.0.7**: 🆕 최신 버전
-  - **제네릭 타입 완벽 지원**: `List<User>`, `Optional<String>` 등 1-depth 제네릭 타입
-  - **스마트 타입 표시**: 패키지명 자동 제거 및 직관적 타입명 표시
-  - **배열 스키마 개선**: List 반환 타입의 올바른 스키마 생성 및 예시 표시
-  - **JSON 호환성**: 내부적으로 `<>` → `_` 변환하여 JSON 파싱 오류 해결
-  - **UI 개선**: `List_User` → `List<User>` 형태로 사용자 친화적 표시
+## License
 
-- **1.0.6**: 운영 환경 지원 버전
-  - 운영 환경 문서 비활성화 기능 (`enabled: false`)
-  - JSON Schema enum 타입 개선
-  - 인터랙티브 테스트 UI 성능 개선
+MIT — see [LICENSE](LICENSE). Bundled browser libraries: sockjs-client (MIT) and @stomp/stompjs (Apache-2.0),
+notices under `META-INF/third-party/`.
 
-- **1.0.2**: JSON Schema 생성 안정성 개선
-- **1.0.0**: 초기 릴리스
+## Author
 
-## 🤝 기여하기
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📝 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
-## 👨‍💻 개발자
-
-**이현수 (Hyeonsu Lee)**
-- GitHub: [@20HyeonsuLee](https://github.com/20HyeonsuLee)  
-- 프로젝트 링크: [https://github.com/20HyeonsuLee/websocket-docs-generator](https://github.com/20HyeonsuLee/websocket-docs-generator)
-
----
-
-**⭐ 이 프로젝트가 도움이 되었다면 Star를 눌러주세요!**
+**Hyeonsu Lee** — [@20HyeonsuLee](https://github.com/20HyeonsuLee)
