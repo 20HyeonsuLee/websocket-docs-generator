@@ -43,8 +43,8 @@ dependencies {
     compileOnly("org.yaml:snakeyaml")
 
     // Internal implementation detail; none of its types appear in the public API.
-    implementation("com.github.victools:jsonschema-generator:4.37.0")
-    implementation("com.github.victools:jsonschema-module-jackson:4.37.0")
+    implementation("com.github.victools:jsonschema-generator:5.0.0")
+    implementation("com.github.victools:jsonschema-module-jackson:5.0.0")
 
     // Generates META-INF/spring-configuration-metadata.json for IDE completion of websocket.docs.* keys.
     // Must come after Lombok so the generated getters/setters are visible to it.
